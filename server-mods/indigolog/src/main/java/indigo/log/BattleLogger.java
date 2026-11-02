@@ -80,7 +80,7 @@ public final class BattleLogger {
 
             UUID id = (UUID) call(battle, "getBattleId");
             emAndamento.put(id, new Batalha(battle, uuids, nomes, tipo, treinador));
-            DiscordWebhook.enviar("⚔️ `" + DiscordWebhook.agora() + "` **" + String.join(", ", nomes)
+            DiscordWebhook.BATALHAS.enviar("⚔️ `" + DiscordWebhook.agora() + "` **" + String.join(", ", nomes)
                     + "** iniciou uma batalha contra **" + tipo + "** (" + treinador + ") — Resultado: **EM ANDAMENTO...**");
         } catch (Throwable t) {
             IndigoLogMod.LOGGER.warn("IndigoLog: erro no início de batalha: {}", t.toString());
@@ -128,7 +128,7 @@ public final class BattleLogger {
     }
 
     private void fim(Batalha b, String resultado) {
-        DiscordWebhook.enviar("🏁 `" + DiscordWebhook.agora() + "` **" + String.join(", ", b.nomes)
+        DiscordWebhook.BATALHAS.enviar("🏁 `" + DiscordWebhook.agora() + "` **" + String.join(", ", b.nomes)
                 + "** finalizou uma batalha contra **" + b.tipo + "** (" + b.treinador + ") — Resultado: **" + resultado + "**");
     }
 

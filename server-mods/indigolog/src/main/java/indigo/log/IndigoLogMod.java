@@ -32,6 +32,6 @@ public final class IndigoLogMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(battles::tick);
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> DiscordWebhook.flushNow());
-        LOGGER.info("IndigoLog carregado (webhook {}).", LogConfig.get().webhookUrl.isBlank() ? "NÃO configurado" : "configurado");
+        LOGGER.info("IndigoLog carregado ({}).", (LogConfig.get().urlBaus().isBlank() ? "baús: NÃO configurado" : "baús: ok") + ", " + (LogConfig.get().urlBatalhas().isBlank() ? "batalhas: NÃO configurado" : "batalhas: ok"));
     }
 }

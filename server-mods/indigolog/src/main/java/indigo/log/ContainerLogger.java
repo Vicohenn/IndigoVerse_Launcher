@@ -114,7 +114,7 @@ public final class ContainerLogger {
         String onde = String.format("%s em %s (%d, %d, %d)", nomeBloco(s.bloco), s.dimensao.replace("minecraft:", ""),
                 s.pos.getX(), s.pos.getY(), s.pos.getZ());
         String claim = s.claim == null ? "" : " — claim de **" + s.claim + "**";
-        DiscordWebhook.enviar("📦 `" + DiscordWebhook.agora() + "` **" + jogador + "** retirou de " + onde + claim + ": " + itens);
+        DiscordWebhook.BAUS.enviar("📦 `" + DiscordWebhook.agora() + "` **" + jogador + "** retirou de " + onde + claim + ": " + itens);
     }
 
     /** Soma os itens dos slots que não são do jogador. */

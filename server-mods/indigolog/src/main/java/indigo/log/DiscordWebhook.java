@@ -22,13 +22,17 @@ import java.util.concurrent.TimeUnit;
  * Tudo roda fora da thread do servidor: o jogo nunca espera o Discord.
  */
 public final class DiscordWebhook {
-    private static final ConcurrentLinkedQueue<String> FILA = new ConcurrentLinkedQueue<>();
+    public static final DiscordWebhook BAUS = new DiscordWebhook(() -> LogConfig.get().urlBaus());
+    public static final DiscordWebhook BATALHAS = new DiscordWebhook(() -> LogConfig.get().urlBatalhas());
+
+    private final ConcurrentLinkedQueue<String> fila = new ConcurrentLinkedQueue<>();
+    private final java.util.function.Supplier<String> url;
+    private String pendente;
     private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private static ScheduledExecutorService executor;
-    private static String pendente;
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("dd/MM HH:mm:ss");
 
-    private DiscordWebhook() {}
+    private DiscordWebhook(java.util.function.Supplier<String> url) { this.url = url; }
 
     public static void start() {
         executor = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -36,7 +40,7 @@ public final class DiscordWebhook {
             t.setDaemon(true);
             return t;
         });
-        executor.scheduleWithFixedDelay(DiscordWebhook::flush, 3, 3, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(DiscordWebhook::flushNow, 3, 3, TimeUnit.SECONDS);
     }
 
     public static String agora() {
@@ -46,34 +50,35 @@ public final class DiscordWebhook {
     }
 
     /** Coloca uma linha na fila (também vai para o log do servidor). */
-    public static void enviar(String linha) {
+    public void enviar(String linha) {
         IndigoLogMod.LOGGER.info("[log] {}", linha.replace("**", ""));
-        FILA.add(linha);
+        fila.add(linha);
     }
 
     public static void flushNow() {
-        flush();
+        BAUS.flush();
+        BATALHAS.flush();
     }
 
-    private static synchronized void flush() {
-        String url = LogConfig.get().webhookUrl;
-        if (url == null || url.isBlank()) { FILA.clear(); return; }
+    private synchronized void flush() {
+        String url = this.url.get();
+        if (url == null || url.isBlank()) { fila.clear(); return; }
         if (pendente != null) {                                        // mensagem que falhou no ciclo anterior
             if (!post(url, pendente)) return;
             pendente = null;
         }
-        while (!FILA.isEmpty()) {
+        while (!fila.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            while (!FILA.isEmpty() && sb.length() + FILA.peek().length() + 1 < 1900) {
+            while (!fila.isEmpty() && sb.length() + fila.peek().length() + 1 < 1900) {
                 if (sb.length() > 0) sb.append('\n');
-                sb.append(FILA.poll());
+                sb.append(fila.poll());
             }
-            if (sb.length() == 0) sb.append(FILA.poll(), 0, 1900);   // linha gigante: corta
+            if (sb.length() == 0) sb.append(fila.poll(), 0, 1900);   // linha gigante: corta
             if (!post(url, sb.toString())) { pendente = sb.toString(); return; }   // tenta de novo no próximo ciclo
         }
     }
 
-    private static boolean post(String url, String conteudo) {
+    private boolean post(String url, String conteudo) {
         JsonObject body = new JsonObject();
         body.addProperty("content", conteudo);
         body.addProperty("username", "IndigoVerse Logs");

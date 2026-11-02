@@ -19,7 +19,11 @@ public final class LogConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static LogConfig instance = new LogConfig();
 
-    /** URL do webhook do canal da Staff (Discord → canal → Editar → Integrações → Webhooks). */
+    /** Webhook do canal de logs de baús (Discord → canal → Editar → Integrações → Webhooks). */
+    public String webhookBaus = "";
+    /** Webhook do canal de logs de batalhas contra líderes / Elite dos 4 / campeões. */
+    public String webhookBatalhas = "";
+    /** (antigo) usado para os dois tipos quando os campos acima estiverem vazios. */
     public String webhookUrl = "";
     /** Fuso usado nos horários das mensagens. */
     public String fusoHorario = "America/Sao_Paulo";
@@ -55,6 +59,9 @@ public final class LogConfig {
 
     public static LogConfig get() { return instance; }
 
+    public String urlBaus() { return webhookBaus.isBlank() ? webhookUrl : webhookBaus; }
+    public String urlBatalhas() { return webhookBatalhas.isBlank() ? webhookUrl : webhookBatalhas; }
+
     public static void load() {
         Path p = FabricLoader.getInstance().getConfigDir().resolve("indigolog.json");
         try {
@@ -65,6 +72,8 @@ public final class LogConfig {
                 }
             }
             if (instance.webhookUrl == null) instance.webhookUrl = "";
+            if (instance.webhookBaus == null) instance.webhookBaus = "";
+            if (instance.webhookBatalhas == null) instance.webhookBatalhas = "";
             if (instance.tiposDeTreinador == null) instance.tiposDeTreinador = defaultTipos();
             if (instance.blocosIgnorados == null) instance.blocosIgnorados = new ArrayList<>();
             try (Writer w = Files.newBufferedWriter(p, StandardCharsets.UTF_8)) {
