@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "indigovip",
+  "version": "${version}",
+  "name": "IndigoVIP",
+  "description": "Tags de apoiador do IndigoVerse (Básico, Treinador, Gym Leader, Elite Four, Indigo Legend) e entrega automática das doações feitas pelo bot do Discord.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.vip.IndigoVipMod"] },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
