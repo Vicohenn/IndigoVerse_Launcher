@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "indigospawn",
+  "version": "${version}",
+  "name": "IndigoSpawn",
+  "description": "Spawn exato (dentro da casa) e áreas protegidas contra quebrar/colocar blocos, mantendo portas e botões funcionando.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.spawn.IndigoSpawnMod"] },
+  "mixins": ["indigospawn.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

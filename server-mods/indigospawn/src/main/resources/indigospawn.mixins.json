@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "indigo.spawn.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["ExplosionMixin"],
+  "injectors": { "defaultRequire": 1 }
+}
