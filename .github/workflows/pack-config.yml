@@ -1,0 +1,43 @@
+name: Configs extras do pack (minimapa etc.)
+on:
+  workflow_dispatch:
+  push:
+    paths: ['pack-config/**', '.github/workflows/pack-config.yml']
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adicionar os arquivos de pack-config ao distribution.json
+        run: |
+          set -e
+          gh release download pack --repo "$REPO" -p distribution.json -O dist.json
+          python3 - <<'EOF'
+          import json, hashlib, os, re
+          d = json.load(open('dist.json', encoding='utf-8'))
+          base = 'https://github.com/' + os.environ['REPO'] + '/releases/download/pack/'
+          os.makedirs('up', exist_ok=True)
+          srv = d['servers'][0]
+          novos = []
+          for raiz, _, arqs in os.walk('pack-config'):
+              for a in arqs:
+                  cheio = os.path.join(raiz, a)
+                  rel = os.path.relpath(cheio, 'pack-config').replace(os.sep, '/')
+                  b = open(cheio, 'rb').read()
+                  nome = re.sub(r'[^A-Za-z0-9._-]', '_', 'file_' + rel.replace('/', '__'))
+                  open('up/' + nome, 'wb').write(b)
+                  novos.append({'id': rel, 'name': os.path.basename(rel), 'type': 'File',
+                                'artifact': {'size': len(b), 'MD5': hashlib.md5(b).hexdigest(), 'url': base + nome, 'path': rel}})
+          ids = {m['id'] for m in novos}
+          srv['modules'] = [m for m in srv['modules'] if m['id'] not in ids] + novos
+          v = srv['version'].split('+')
+          srv['version'] = v[0] + '+' + '.'.join(sorted(set((v[1].split('.') if len(v) > 1 else []) + ['cfg'])))
+          json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+          print(len(novos), 'arquivos;', len(srv['modules']), 'módulos;', srv['version'])
+          EOF
+          gh release upload pack up/* --repo "$REPO" --clobber
