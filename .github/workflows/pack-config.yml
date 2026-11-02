@@ -2,7 +2,7 @@ name: Configs extras do pack (minimapa etc.)
 on:
   workflow_dispatch:
   push:
-    paths: ['pack-config/**', 'pack-remover.txt', '.github/workflows/pack-config.yml']
+    paths: ['pack-config/**', 'pack-remover.txt', 'pack-endereco.txt', '.github/workflows/pack-config.yml']
 permissions:
   contents: write
 jobs:
@@ -42,6 +42,12 @@ jobs:
           antes = len(srv['modules'])
           srv['modules'] = [m for m in srv['modules'] if m['id'] not in remover]
           print('removidos do download automático:', antes - len(srv['modules']))
+          # endereço do servidor (playit.gg etc.)
+          if os.path.exists('pack-endereco.txt'):
+              end = open('pack-endereco.txt', encoding='utf-8').read().strip()
+              if end:
+                  print('endereço:', srv.get('address'), '->', end)
+                  srv['address'] = end
           v = srv['version'].split('+')
           srv['version'] = v[0] + '+' + '.'.join(sorted(set((v[1].split('.') if len(v) > 1 else []) + ['cfg'])))
           json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
