@@ -47,6 +47,7 @@ MODS_FORA = {
 PACKS_CELULAR = [
     'COBBLEVERSE RP.zip', 'COBBLEVERSE RCTmod RP.zip', 'Cobblemon Interface Modded.zip',
     'Low Fire.zip', 'Classic Grass.zip', 'Comforts Modernized.zip',
+    'ATMxMSD RP.zip',   # modelos de Paradoxos, Ultra Beasts e míticos que o Cobblemon não tem
 ]
 
 # configs do PC que também vão (tela de carregamento IndigoVerse)
@@ -115,7 +116,7 @@ def servers_dat(nome, ip):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--endereco', default='26.135.84.87:25565')
-    ap.add_argument('--versao', default='1.0.1')
+    ap.add_argument('--versao', default='1.0.2')
     a = ap.parse_args()
 
     distro = json.loads(baixar(DISTRO))
