@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "indigolog",
+  "version": "${version}",
+  "name": "IndigoLog",
+  "description": "Logs do servidor IndigoVerse no Discord: itens retirados de baús (com claims do Flan) e batalhas contra líderes, Elite dos 4 e campeões.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": {
+    "main": ["indigo.log.IndigoLogMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "cobblemon": "*",
+    "rctmod": "*",
+    "flan": "*"
+  }
+}
