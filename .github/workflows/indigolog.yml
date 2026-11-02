@@ -29,6 +29,11 @@ jobs:
       - name: Compilar IndigoSpawn
         working-directory: server-mods/indigospawn
         run: gradle build --no-daemon 2>&1 | tee build.log
+      - name: Nomes da classe Explosion (diagnóstico)
+        if: always()
+        run: |
+          J=$(find server-mods ~/.gradle -path '*minecraft*' -name '*.jar' 2>/dev/null | grep -i -E 'merged|common' | grep -i yarn | head -1)
+          echo "$J"; javap -p -cp "$J" net.minecraft.world.explosion.Explosion | grep -iE 'List|affectWorld|world' || true
       - name: Conferir mixin do IndigoSpawn
         working-directory: server-mods/indigospawn
         run: |

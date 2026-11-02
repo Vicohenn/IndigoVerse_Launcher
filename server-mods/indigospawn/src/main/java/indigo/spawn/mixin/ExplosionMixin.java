@@ -11,18 +11,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /** Explosões (creeper, TNT, etc.) não destroem blocos dentro das áreas protegidas. */
 @Mixin(Explosion.class)
 public abstract class ExplosionMixin {
     @Shadow @Final private World world;
 
-    @Shadow public abstract List<BlockPos> getToDestroy();
+    @Shadow(aliases = {"toDestroy", "field_9188"}) @Final private ObjectArrayList<BlockPos> affectedBlocks;
 
     @Inject(method = "affectWorld", at = @At("HEAD"))
     private void indigospawn$proteger(boolean particles, CallbackInfo ci) {
         if (world.isClient) return;
-        getToDestroy().removeIf(p -> Protecao.areaEm(world, p) != null);
+        affectedBlocks.removeIf(p -> Protecao.areaEm(world, p) != null);
     }
 }
