@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -59,6 +61,9 @@ public final class IndigoSpawnMod implements ModInitializer {
     private record Agendado(long tick, UUID jogador) {}
     private static final List<Agendado> agenda = new ArrayList<>();
     private static long tick;
+    /** Jogadores novos vigiados por alguns minutos: se aparecerem em cima do telhado do spawn, voltam para dentro. */
+    private static final Map<UUID, Long> vigiados = new ConcurrentHashMap<>();
+    private static final long VIGIA_TICKS = 20L * 60 * 5;
 
     @Override
     public void onInitialize() {
@@ -72,6 +77,7 @@ public final class IndigoSpawnMod implements ModInitializer {
                 // duas vezes: logo depois de entrar e de novo após o login (EasyAuth pode mexer na posição)
                 agenda.add(new Agendado(tick + 20, p.getUuid()));
                 agenda.add(new Agendado(tick + 80, p.getUuid()));
+                vigiados.put(p.getUuid(), tick + VIGIA_TICKS);
             }
         });
 
@@ -83,6 +89,14 @@ public final class IndigoSpawnMod implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tick++;
+            if (tick % 20 == 0 && !vigiados.isEmpty()) {
+                vigiados.entrySet().removeIf(e -> {
+                    ServerPlayerEntity p = server.getPlayerManager().getPlayer(e.getKey());
+                    if (p == null || e.getValue() < tick) return true;
+                    if (noTelhado(p)) irParaSpawn(p);
+                    return false;
+                });
+            }
             if (agenda.isEmpty()) return;
             for (Iterator<Agendado> it = agenda.iterator(); it.hasNext(); ) {
                 Agendado a = it.next();
@@ -184,6 +198,23 @@ public final class IndigoSpawnMod implements ModInitializer {
     private static boolean interativo(BlockState st) {
         return st.isIn(BlockTags.DOORS) || st.isIn(BlockTags.TRAPDOORS) || st.isIn(BlockTags.FENCE_GATES)
                 || st.isIn(BlockTags.BUTTONS) || st.isOf(net.minecraft.block.Blocks.LEVER) || st.isOf(net.minecraft.block.Blocks.BELL);
+    }
+
+    /** Ponto exato do spawn (para o mixin), ou null se a dimensão não for a do spawn. */
+    public static BlockPos spawnExato(ServerWorld world) {
+        SpawnConfig c = SpawnConfig.get();
+        if (c == null || c.spawn == null) return null;
+        if (!Protecao.dim(world).equals(c.spawn.dimensao)) return null;
+        return BlockPos.ofFloored(c.spawn.x, c.spawn.y, c.spawn.z);
+    }
+
+    /** Em cima da casa do spawn: perto do ponto, acima dele e a céu aberto (andar de cima da casa não conta). */
+    private static boolean noTelhado(ServerPlayerEntity p) {
+        SpawnConfig.Ponto s = SpawnConfig.get().spawn;
+        if (!Protecao.dim(p.getWorld()).equals(s.dimensao)) return false;
+        if (p.getY() < s.y + 3) return false;
+        if (Math.abs(p.getX() - s.x) > 16 || Math.abs(p.getZ() - s.z) > 16) return false;
+        return p.getWorld().isSkyVisible(p.getBlockPos().up());
     }
 
     public static void irParaSpawn(ServerPlayerEntity p) {

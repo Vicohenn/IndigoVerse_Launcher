@@ -47,7 +47,7 @@ jobs:
         if: always()
         run: |
           J=$(find server-mods ~/.gradle -path '*minecraft*' -name '*.jar' 2>/dev/null | grep -i -E 'merged|common' | grep -i yarn | head -1)
-          echo "$J"; javap -p -cp "$J" net.minecraft.world.explosion.Explosion | grep -iE 'List|affectWorld|world' || true
+          echo "$J"; javap -p -cp "$J" net.minecraft.server.network.ServerPlayerEntity | grep -iE 'spawn' || true
       - name: Conferir mixin do IndigoSpawn
         working-directory: server-mods/indigospawn
         run: |
