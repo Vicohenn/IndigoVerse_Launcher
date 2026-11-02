@@ -1,0 +1,71 @@
+name: Mods extras (Litematica, MaLiLib, Servux)
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/mods-extras.yml']
+permissions:
+  contents: write
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar do Modrinth (1.21.1 / Fabric)
+        run: |
+          set -e
+          mkdir -p extra-mods
+          rm -f extra-mods/*.jar
+          for p in litematica malilib servux; do
+            curl -sfL -A "Vicohenn/IndigoVerse_Launcher (github actions)" \
+              "https://api.modrinth.com/v2/project/$p/version?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D" > v.json
+            url=$(jq -r '[.[] | select(.version_type=="release")][0].files[] | select(.primary) | .url' v.json)
+            [ -z "$url" -o "$url" = "null" ] && url=$(jq -r '.[0].files[] | select(.primary) | .url' v.json)
+            echo "$p -> $url"
+            curl -sfL -o "extra-mods/$(basename "$url")" "$url"
+          done
+          ls -la extra-mods
+          for j in extra-mods/*.jar; do echo "== $j"; unzip -p "$j" fabric.mod.json | jq -c '{id,version,environment,depends}'; done
+      - name: Colocar no modpack (release "pack" + distribution.json)
+        run: |
+          set -e
+          gh release download pack --repo "$REPO" -p distribution.json -O dist.json
+          python3 - <<'EOF'
+          import json, hashlib, os, glob, zipfile, re
+          d = json.load(open('dist.json', encoding='utf-8'))
+          base = 'https://github.com/' + os.environ['REPO'] + '/releases/download/pack/'
+          def info(j):
+              mj = json.loads(zipfile.ZipFile(j).read('fabric.mod.json').decode('utf-8', 'replace'))
+              b = open(j, 'rb').read()
+              nome = 'mod_' + re.sub(r'[^A-Za-z0-9._-]', '_', os.path.basename(j))
+              os.makedirs('up', exist_ok=True)
+              open('up/' + nome, 'wb').write(b)
+              limpo = lambda s: re.sub(r'[:@/\\\s]', '_', s)
+              return mj, {'id': f"indigoverse:{limpo(mj['id'])}:{limpo(mj['version'])}@jar", 'name': mj.get('name', mj['id']),
+                          'type': 'FabricMod', 'artifact': {'size': len(b), 'MD5': hashlib.md5(b).hexdigest(), 'url': base + nome}}
+          jars = {}
+          for j in glob.glob('extra-mods/*.jar'):
+              mj, mod = info(j)
+              jars[mj['id']] = (mj, mod)
+          lite = jars['litematica'][1]
+          lite['required'] = {'value': False, 'def': True}
+          lite['subModules'] = [jars['malilib'][1]]
+          srv = d['servers'][0]
+          srv['modules'] = [m for m in srv['modules'] if not any(k in m['id'] for k in (':litematica:', ':malilib:'))]
+          srv['modules'].append(lite)
+          srv['version'] = srv['version'].split('+')[0] + '+lite'
+          json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+          print('módulos:', len(srv['modules']))
+          EOF
+          ls -la up
+          gh release upload pack up/* --repo "$REPO" --clobber
+      - name: Guardar os .jar no repositório (extra-mods)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git pull --rebase
+          git add extra-mods
+          git commit -m "Mods extras: Litematica, MaLiLib, Servux" || exit 0
+          git push
