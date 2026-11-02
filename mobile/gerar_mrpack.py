@@ -41,6 +41,8 @@ MODS_FORA = {
     'worldedit', 'impactor', 'gts', 'impactorbattle', 'cobbledollarsbridge',
     # v1.0.1: menus personalizados (FancyMenu estourou a memória num celular de teste)
     'fancymenu', 'konkrete', 'melody',
+    # v1.0.3: Litematica é opcional e pesado para celular
+    'litematica', 'malilib',
 }
 
 # resource packs leves que entram no celular (o resto do PC é cosmético e pesado)
@@ -51,7 +53,8 @@ PACKS_CELULAR = [
 ]
 
 # configs do PC que também vão (tela de carregamento IndigoVerse)
-CONFIGS = ('config/customsplashscreen', 'config/global_packs.toml')
+CONFIGS = ('config/customsplashscreen', 'config/global_packs.toml',
+           'config/xaero/', 'config/xaerohud.txt')   # v1.0.3: minimapa igual ao do PC
 
 OPTIONS = """version:3955
 renderDistance:5
@@ -116,7 +119,7 @@ def servers_dat(nome, ip):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--endereco', default='26.135.84.87:25565')
-    ap.add_argument('--versao', default='1.0.2')
+    ap.add_argument('--versao', default='1.0.3')
     a = ap.parse_args()
 
     distro = json.loads(baixar(DISTRO))
