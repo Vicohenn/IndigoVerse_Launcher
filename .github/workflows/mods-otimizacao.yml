@@ -21,9 +21,8 @@ jobs:
           for p in c2me-fabric chunky spark immediatelyfast; do
             curl -sfL -A "Vicohenn/IndigoVerse_Launcher (github actions)" \
               "https://api.modrinth.com/v2/project/$p/version?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D" > v.json
-            url=$(jq -r '[.[] | select(.version_type=="release")][0].files[] | select(.primary) | .url' v.json)
-            [ -z "$url" -o "$url" = "null" ] && url=$(jq -r '.[0].files[] | select(.primary) | .url' v.json)
-            echo "$p -> $url"
+            url=$(jq -r '(map(select(.version_type=="release"))[0] // .[0]) | .files[] | select(.primary) | .url' v.json)
+            echo "$p -> $(jq -r '(map(select(.version_type=="release"))[0] // .[0]) | .version_number + " (" + .version_type + ")"' v.json) $url"
             curl -sfL -o "extra-mods/otimizacao/$(basename "$url")" "$url"
           done
           for j in extra-mods/otimizacao/*.jar; do echo "== $j"; unzip -p "$j" fabric.mod.json | jq -c '{id,version,environment,depends}'; done
