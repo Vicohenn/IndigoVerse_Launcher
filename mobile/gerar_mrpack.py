@@ -33,7 +33,8 @@ MODS_FORA = {
     'iris', 'euphoria_patcher',                           # shaders
     'continuity',                                         # texturas conectadas
     'entity_model_features', 'entity_texture_features',   # modelos/texturas animadas
-    'particlerain', 'particular',                         # partículas extras
+    'particlerain',                                       # partículas extras
+    # v1.0.6: Particular volta: o servidor tem o mod e registra 39 partículas (sem ele o celular é desconectado)
     'notenoughanimations',                                # animações do jogador
     'resourcepackoverrides',                              # forçaria os 40 resource packs do PC
     'stackdeobfuscator',                                  # baixa mapeamentos ao abrir o jogo
