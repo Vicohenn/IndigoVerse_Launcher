@@ -1,0 +1,34 @@
+appId: 'indigoverselauncher'
+productName: 'IndigoVerse Launcher'
+artifactName: 'IndigoVerse-Launcher-setup-${version}.${ext}'
+
+copyright: 'IndigoVerse - baseado no Helios Launcher (MIT) de Daniel Scalzi'
+
+asar: true
+compression: 'maximum'
+
+files:
+  - '!{dist,.gitignore,.vscode,docs,dev-app-update.yml,.nvmrc,eslint.config.mjs,indigoverse.json}'
+
+extraResources:
+  - 'libraries'
+  - 'indigoverse.json'
+
+win:
+  target:
+    - target: 'nsis'
+      arch: 'x64'
+  icon: 'build/icon.ico'
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  shortcutName: 'IndigoVerse'
+  installerIcon: 'build/icon.ico'
+  uninstallerIcon: 'build/icon.ico'
+
+directories:
+  buildResources: 'build'
+  output: 'dist'

@@ -1,0 +1,295 @@
+# Tradução pt-BR (IndigoVerse). Chaves que faltarem caem no en_US.
+
+[ejs.landing]
+updateAvailableTooltip = "Atualização disponível"
+usernamePlaceholder = "Jogador"
+usernameEditButton = "Editar"
+settingsTooltip = "Configurações"
+serverStatus = "SERVIDOR"
+serverStatusPlaceholder = "OFFLINE"
+mojangStatus = "STATUS MOJANG"
+mojangStatusTooltipTitle = "Serviços"
+mojangStatusNETitle = "Não&nbsp;essenciais"
+newsButton = "NOTÍCIAS"
+launchButton = "JOGAR"
+launchButtonPlaceholder = "&#8226; Nenhum servidor selecionado"
+launchDetails = "Aguarde.."
+newsNavigationStatus = "{currentPage} de {totalPages}"
+newsErrorLoadSpan = "Buscando notícias.."
+newsErrorFailedSpan = "Não foi possível carregar as notícias"
+newsErrorRetryButton = "Tentar de novo"
+newsErrorNoneSpan = "Sem notícias"
+
+[ejs.login]
+loginCancelText = "Cancelar"
+loginSubheader = "ENTRAR COM NICK"
+loginEmailError = "* Nick inválido"
+loginEmailPlaceholder = "SEU NICK"
+loginPasswordError = "* Obrigatório"
+loginPasswordPlaceholder = "SENHA"
+loginForgotPasswordText = "esqueceu a senha?"
+loginRememberMeText = "lembrar de mim?"
+loginButtonText = "ENTRAR"
+loginNeedAccountText = "Precisa de uma conta?"
+loginPasswordDisclaimer1 = "Modo offline: nenhuma senha é enviada."
+loginPasswordDisclaimer2 = "{appName} não é afiliado à Mojang AB."
+
+[ejs.loginOptions]
+loginOptionsTitle = "Como você quer entrar?"
+loginWithMicrosoft = "Entrar com Microsoft"
+loginWithMojang = "Jogar com nick (offline)"
+cancelButton = "Cancelar"
+
+[ejs.overlay]
+serverSelectHeader = "Servidores disponíveis"
+serverSelectConfirm = "Selecionar"
+serverSelectCancel = "Cancelar"
+accountSelectHeader = "Escolha uma conta"
+accountSelectConfirm = "Selecionar"
+accountSelectCancel = "Cancelar"
+
+[ejs.settings]
+navHeaderText = "Configurações"
+navAccount = "Conta"
+navMinecraft = "Minecraft"
+navMods = "Mods"
+navJava = "Java"
+navLauncher = "Launcher"
+navAbout = "Sobre"
+navUpdates = "Atualizações"
+navDone = "Pronto"
+tabAccountHeaderText = "Contas"
+tabAccountHeaderDesc = "Adicione contas novas ou gerencie as existentes."
+microsoftAccount = "Microsoft"
+addMicrosoftAccount = "+ Adicionar conta Microsoft"
+mojangAccount = "Offline (nick)"
+addMojangAccount = "+ Adicionar nick offline"
+minecraftTabHeaderText = "Configurações do Minecraft"
+minecraftTabHeaderDesc = "Opções de inicialização do jogo."
+gameResolutionTitle = "Resolução do jogo"
+launchFullscreenTitle = "Abrir em tela cheia."
+autoConnectTitle = "Conectar automaticamente ao servidor ao abrir."
+launchDetachedTitle = "Abrir o jogo separado do launcher."
+launchDetachedDesc = "Se não estiver separado, fechar o launcher também fecha o jogo."
+tabModsHeaderText = "Mods"
+tabModsHeaderDesc = "Ative ou desative mods."
+switchServerButton = "Trocar"
+requiredMods = "Mods obrigatórios"
+optionalMods = "Mods opcionais"
+dropinMods = "Mods extras"
+addMods = "Adicionar mods"
+dropinRefreshNote = "(F5 para atualizar)"
+shaderpacks = "Shaders"
+shaderpackDesc = "Ative ou desative shaders. Shaders só rodam bem em PCs mais fortes. Você pode adicionar os seus aqui."
+selectShaderpack = "Escolher shader"
+tabJavaHeaderText = "Java"
+tabJavaHeaderDesc = "Configuração do Java (avançado)."
+memoryTitle = "Memória"
+maxRAM = "RAM máxima"
+minRAM = "RAM mínima"
+memoryDesc = "Para o IndigoVerse recomendamos pelo menos 6 GB. Usar o mesmo valor no mínimo e no máximo pode reduzir travadas."
+memoryTotalTitle = "Total"
+memoryAvailableTitle = "Disponível"
+javaExecutableTitle = "Executável do Java"
+javaExecSelDialogTitle = "Escolher executável do Java"
+javaExecSelButtonText = "Escolher arquivo"
+javaExecDesc = "O Java é verificado antes de abrir o jogo."
+javaPathDesc = "O caminho deve terminar com <strong>{pathSuffix}</strong>."
+jvmOptsTitle = "Opções extras da JVM"
+jvmOptsDesc = "Opções passadas para a JVM. Não inclua <em>-Xms</em> nem <em>-Xmx</em>."
+launcherTabHeaderText = "Launcher"
+launcherTabHeaderDesc = "Opções do próprio launcher."
+allowPrereleaseTitle = "Permitir versões de teste."
+allowPrereleaseDesc = "Versões de teste podem ter recursos ainda não testados por completo."
+dataDirectoryTitle = "Pasta de dados"
+selectDataDirectory = "Escolher pasta de dados"
+chooseFolder = "Escolher pasta"
+dataDirectoryDesc = "Arquivos do jogo e o Java ficam nesta pasta.<br>Prints e mundos ficam na pasta da instância do servidor."
+aboutTabHeaderText = "Sobre"
+aboutTabHeaderDesc = "Informações da versão atual."
+stableRelease = "Versão estável"
+versionText = "Versão "
+sourceGithub = "Código (GitHub)"
+support = "Suporte"
+devToolsConsole = "Console DevTools"
+releaseNotes = "Notas da versão"
+changelog = "Mudanças"
+noReleaseNotes = "Sem notas da versão"
+viewReleaseNotes = "Ver notas no GitHub"
+launcherUpdatesHeaderText = "Atualizações do launcher"
+launcherUpdatesHeaderDesc = "Baixe e instale atualizações do launcher."
+checkForUpdates = "Procurar atualizações"
+whatsNew = "Novidades"
+updateReleaseNotes = "Notas da atualização"
+
+[ejs.waiting]
+waitingText = "Aguardando a Microsoft.."
+
+[ejs.welcome]
+continueButton = "CONTINUAR"
+
+[js.index]
+microsoftLoginTitle = "Login Microsoft"
+microsoftLogoutTitle = "Sair da Microsoft"
+
+[js.login]
+login = "ENTRAR"
+loggingIn = "ENTRANDO"
+success = "PRONTO"
+tryAgain = "Tentar de novo"
+
+[js.login.error]
+invalidValue = "* Nick inválido"
+requiredValue = "* Obrigatório"
+
+[js.login.error.unknown]
+title = "Erro desconhecido ao entrar"
+desc = "Ocorreu um erro desconhecido. Veja o console para detalhes."
+
+[js.landing.launch]
+pleaseWait = "Aguarde.."
+failureTitle = "Erro ao abrir o jogo"
+failureText = "Veja o console (CTRL + Shift + i) para detalhes."
+okay = "Ok"
+
+[js.landing.selectedAccount]
+noAccountSelected = "Nenhuma conta selecionada"
+
+[js.landing.selectedServer]
+noSelection = "Nenhum servidor selecionado"
+loading = "Carregando.."
+
+[js.landing.serverStatus]
+server = "SERVIDOR"
+offline = "OFFLINE"
+players = "JOGADORES"
+
+[js.landing.systemScan]
+checking = "Verificando o sistema.."
+noCompatibleJava = "Nenhum Java<br>compatível encontrado"
+installJavaMessage = "Para jogar é preciso o Java {major} 64-bit. Quer que o launcher instale para você?"
+installJava = "Instalar Java"
+installJavaManually = "Instalar manualmente"
+javaDownloadPrepare = "Preparando download do Java.."
+javaDownloadFailureTitle = "Erro ao baixar o Java"
+javaDownloadFailureText = "Veja o console (CTRL + Shift + i) para detalhes."
+javaRequired = "O Java é necessário<br>para jogar"
+javaRequiredMessage = "É necessário o Java {major} x64 para jogar."
+javaRequiredDismiss = "Entendi"
+javaRequiredCancel = "Voltar"
+
+[js.landing.downloadJava]
+findJdkFailure = "Não foi possível encontrar o OpenJDK."
+javaDownloadCorruptedError = "O Java baixado está corrompido."
+extractingJava = "Extraindo Java"
+javaInstalled = "Java instalado!"
+
+[js.landing.dlAsync]
+loadingServerInfo = "Carregando informações do servidor.."
+fatalError = "Erro fatal"
+unableToLoadDistributionIndex = "Não foi possível carregar a lista de arquivos do servidor. Veja o console (CTRL + Shift + i)."
+pleaseWait = "Aguarde.."
+errorDuringLaunchTitle = "Erro ao abrir o jogo"
+seeConsoleForDetails = "Veja o console (CTRL + Shift + i) para detalhes."
+validatingFileIntegrity = "Verificando arquivos.."
+errorDuringFileVerificationTitle = "Erro ao verificar arquivos"
+downloadingFiles = "Baixando arquivos.."
+errorDuringFileDownloadTitle = "Erro ao baixar arquivos"
+preparingToLaunch = "Preparando para abrir.."
+launchingGame = "Abrindo o jogo.."
+launchWrapperNotDownloaded = "Um arquivo principal não foi baixado corretamente. Desative o antivírus temporariamente e tente de novo."
+doneEnjoyServer = "Pronto. Bom jogo!"
+checkConsoleForDetails = "Veja o console (CTRL + Shift + i) para detalhes."
+
+[js.landing.news]
+checking = "Buscando notícias"
+
+[js.landing.discord]
+loading = "Carregando o jogo.."
+joining = "Entrando no IndigoVerse!"
+joined = "Explorando o IndigoVerse!"
+
+[js.overlay]
+dismiss = "Fechar"
+
+[js.settings.fileSelectors]
+executables = "Executáveis"
+allFiles = "Todos os arquivos"
+
+[js.settings.mstfLogin]
+errorTitle = "Algo deu errado"
+errorMessage = "Falha no login Microsoft. Tente de novo."
+okButton = "OK"
+
+[js.settings.mstfLogout]
+errorTitle = "Algo deu errado"
+errorMessage = "Falha ao sair da Microsoft. Tente de novo."
+okButton = "OK"
+
+[js.settings.authAccountSelect]
+selectButton = "Usar esta conta"
+selectedButton = "Conta em uso &#10004;"
+
+[js.settings.authAccountLogout]
+lastAccountWarningTitle = "Atenção<br>Esta é sua última conta"
+lastAccountWarningMessage = "Você precisa de pelo menos uma conta para usar o launcher.<br><br>Tem certeza que quer sair?"
+confirmButton = "Tenho certeza"
+cancelButton = "Cancelar"
+
+[js.settings.authAccountPopulate]
+username = "Nick"
+uuid = "UUID"
+selectAccount = "Usar esta conta"
+selectedAccount = "Conta em uso ✓"
+logout = "Sair"
+
+[js.settings.dropinMods]
+removeButton = "Remover"
+deleteFailedTitle = "Não foi possível apagar<br>o mod {fullName}"
+deleteFailedMessage = "Verifique se o arquivo não está em uso e tente de novo."
+failedToggleTitle = "Não foi possível alternar<br>um ou mais mods"
+okButton = "Ok"
+
+[js.settings.serverListing]
+mainServer = "Servidor principal"
+
+[js.settings.java]
+selectedJava = "Selecionado: Java {version} ({vendor})"
+invalidSelection = "Seleção inválida"
+requiresJava = "Requer Java {major} x64."
+availableOptions = "Opções disponíveis para Java {major}"
+
+[js.settings.about]
+preReleaseTitle = "Versão de teste"
+stableReleaseTitle = "Versão estável"
+releaseNotesFailed = "Não foi possível carregar as notas."
+
+[js.settings.updates]
+latestVersionTitle = "Você está na versão mais recente"
+checkForUpdatesButton = "Procurar atualizações"
+checkingForUpdatesButton = "Procurando.."
+
+[js.settings.msftLogin]
+errorTitle = "Falha no login Microsoft"
+errorMessage = "Não conseguimos autenticar sua conta Microsoft. Tente de novo."
+okButton = "OK"
+
+[js.uibinder.startup]
+fatalErrorTitle = "Erro: não foi possível carregar o servidor"
+fatalErrorMessage = "Não foi possível baixar a lista de arquivos do servidor IndigoVerse e não há cópia local.<br><br>Verifique sua internet e abra o launcher de novo."
+closeButton = "Fechar"
+
+[js.uibinder.validateAccount]
+failedMessageTitle = "Login expirado"
+failedMessage = "Não foi possível renovar o login de <strong>{account}</strong>. Escolha outra conta ou entre de novo."
+failedMessageSelectAnotherAccount = "Não foi possível renovar o login de <strong>{account}</strong>. Entre de novo."
+loginButton = "Entrar"
+selectAnotherAccountButton = "Escolher outra conta"
+
+[js.auth.microsoft.error]
+noProfileTitle = "Erro ao entrar:<br>Perfil não criado"
+noProfileDesc = "Sua conta Microsoft ainda não tem um perfil de Minecraft. Crie em <a href=\"https://minecraft.net/\">Minecraft.net</a>."
+noXboxAccountTitle = "Erro ao entrar:<br>Sem conta Xbox"
+noXboxAccountDesc = "Sua conta Microsoft não tem conta Xbox associada."
+unknownTitle = "Erro desconhecido ao entrar"
+unknownDesc = "Ocorreu um erro desconhecido. Veja o console para detalhes."
