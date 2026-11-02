@@ -1,0 +1,4 @@
+# Módulos tirados do download automático do launcher (continuam na release como download opcional)
+resourcepacks/COBBLEVERSE Soundtrack.zip
+resourcepacks/JigglyRadio.zip
+resourcepacks/Original Pokemon Battle Music.zip

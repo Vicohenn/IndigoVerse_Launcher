@@ -2,7 +2,7 @@ name: Configs extras do pack (minimapa etc.)
 on:
   workflow_dispatch:
   push:
-    paths: ['pack-config/**', '.github/workflows/pack-config.yml']
+    paths: ['pack-config/**', 'pack-remover.txt', '.github/workflows/pack-config.yml']
 permissions:
   contents: write
 jobs:
@@ -35,6 +35,13 @@ jobs:
                                 'artifact': {'size': len(b), 'MD5': hashlib.md5(b).hexdigest(), 'url': base + nome, 'path': rel}})
           ids = {m['id'] for m in novos}
           srv['modules'] = [m for m in srv['modules'] if m['id'] not in ids] + novos
+          # tira do download automático o que estiver em pack-remover.txt
+          remover = set()
+          if os.path.exists('pack-remover.txt'):
+              remover = {l.strip() for l in open('pack-remover.txt', encoding='utf-8') if l.strip() and not l.startswith('#')}
+          antes = len(srv['modules'])
+          srv['modules'] = [m for m in srv['modules'] if m['id'] not in remover]
+          print('removidos do download automático:', antes - len(srv['modules']))
           v = srv['version'].split('+')
           srv['version'] = v[0] + '+' + '.'.join(sorted(set((v[1].split('.') if len(v) > 1 else []) + ['cfg'])))
           json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
