@@ -54,6 +54,9 @@ public final class VipConfig {
 
     /** Pasta da fila, relativa à pasta do servidor. O bot do Discord grava os pedidos em <pasta>/pendentes. */
     public String pastaFila = "doacoes";
+    /** Fila pelo Discord (quando o bot roda fora deste PC): token do bot e ID do canal privado da fila. */
+    public String discordToken = "";
+    public String discordCanalFila = "";
     public boolean anunciarNoChat = true;
     public String mensagemAnuncio = "&6✦ &f{nick} &7agora é apoiador {prefixo}&7! Obrigado por ajudar o IndigoVerse!";
     public List<Nivel> niveis = new ArrayList<>();
@@ -85,6 +88,9 @@ public final class VipConfig {
             save();
         }
         if (instance.produtos == null) instance.produtos = new LinkedHashMap<>();
+        if (instance.discordToken == null) instance.discordToken = "";
+        if (instance.discordCanalFila == null) instance.discordCanalFila = "";
+        save();   // grava campos novos no arquivo
     }
 
     public static void save() {

@@ -49,7 +49,9 @@ public final class IndigoVipMod implements ModInitializer {
             Tags.criarTimes(server);
             for (String nick : Apoiadores.todos().values().stream().map(r -> r.nick).toList()) Tags.aplicar(server, nick);
             Entrega.verificarExpirados(server);
+            DiscordFila.iniciar(server);
         });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> DiscordFila.parar());
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             ticks++;
@@ -91,6 +93,7 @@ public final class IndigoVipMod implements ModInitializer {
                         .then(literal("recarregar").requires(s -> s.hasPermissionLevel(2)).executes(c -> {
                             VipConfig.load();
                             Tags.criarTimes(c.getSource().getServer());
+                            DiscordFila.iniciar(c.getSource().getServer());
                             c.getSource().sendFeedback(() -> Text.literal("§aIndigoVIP recarregado."), true);
                             return 1;
                         }))));
