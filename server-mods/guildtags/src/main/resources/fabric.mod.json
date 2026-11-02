@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "guildtags",
+  "version": "${version}",
+  "name": "Guild Tags (IndigoVerse)",
+  "description": "Categorias de guilda: só guildas com a tag podem fabricar pokébolas, medicinais, vitaminas, itens de segurar e TMs, ou plantar frutas e bagas.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.guildtags.GuildTagsMod"] },
+  "mixins": ["guildtags.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "guild": "*"
+  }
+}
