@@ -6,8 +6,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -23,7 +26,8 @@ import java.util.function.Consumer;
  */
 public final class BattleLogger {
 
-    private record Batalha(Object battle, List<UUID> jogadores, List<String> nomes, String tipo, String treinador) {}
+    private record Batalha(Object battle, List<UUID> jogadores, List<String> nomes, String tipo, String treinador,
+                           List<String> times, Set<String> mecanicas) {}
 
     private final Map<UUID, Batalha> emAndamento = new ConcurrentHashMap<>();
     private boolean registrado;
@@ -36,6 +40,17 @@ public final class BattleLogger {
             subscribe(events, "BATTLE_STARTED_POST", this::onStart);
             subscribe(events, "BATTLE_VICTORY", this::onVictory);
             subscribe(events, "BATTLE_FLED", this::onFled);
+            // mecânicas usadas na batalha (Mega, Tera, Z, Dynamax/Gigantamax do Mega Showdown)
+            subscribe(events, "MEGA_EVOLUTION", e -> mecanica(e, "Mega Evolução"));
+            subscribe(events, "TERASTALLIZATION", e -> mecanica(e, "Terastal"));
+            subscribe(events, "ZPOWER_USED", e -> mecanica(e, "Z-Move"));
+            subscribe(events, "FORME_CHANGE", e -> {
+                try {
+                    String forma = String.valueOf(call(e, "getFormeName")).toLowerCase(Locale.ROOT);
+                    if (forma.contains("gmax") || forma.contains("gigantamax")) mecanica(e, "Gigantamax");
+                    else if (forma.contains("dynamax") || forma.contains("eternamax")) mecanica(e, "Dynamax");
+                } catch (Throwable ignored) { }
+            });
             registrado = true;
             IndigoLogMod.LOGGER.info("IndigoLog: monitorando batalhas contra líderes, Elite dos 4 e campeões.");
         } catch (Throwable t) {
@@ -78,8 +93,18 @@ public final class BattleLogger {
             }
             if (uuids.isEmpty()) return;
 
+            // time de cada jogador no momento em que a batalha começou
+            List<String> times = new ArrayList<>();
+            for (Object actor : (Iterable<?>) call(battle, "getActors")) {
+                Object uuid;
+                try { uuid = call(actor, "getUuid"); } catch (Throwable t) { continue; }
+                int i = uuids.indexOf(uuid);
+                if (i < 0) continue;
+                times.add(TimeFormatter.time(nomes.get(i), (List<?>) call(actor, "getPokemonList")));
+            }
+
             UUID id = (UUID) call(battle, "getBattleId");
-            emAndamento.put(id, new Batalha(battle, uuids, nomes, tipo, treinador));
+            emAndamento.put(id, new Batalha(battle, uuids, nomes, tipo, treinador, times, new LinkedHashSet<>()));
             DiscordWebhook.BATALHAS.enviar("⚔️ `" + DiscordWebhook.agora() + "` **" + String.join(", ", nomes)
                     + "** iniciou uma batalha contra **" + tipo + "** (" + treinador + ") — Resultado: **EM ANDAMENTO...**");
         } catch (Throwable t) {
@@ -130,6 +155,50 @@ public final class BattleLogger {
     private void fim(Batalha b, String resultado) {
         DiscordWebhook.BATALHAS.enviar("🏁 `" + DiscordWebhook.agora() + "` **" + String.join(", ", b.nomes)
                 + "** finalizou uma batalha contra **" + b.tipo + "** (" + b.treinador + ") — Resultado: **" + resultado + "**");
+        dynamaxPeloRegistro(b);
+        for (String time : b.times) DiscordWebhook.BATALHAS.enviar(time);
+        DiscordWebhook.BATALHAS.enviar("> Mecânicas usadas: " + (b.mecanicas.isEmpty() ? "nenhuma" : String.join(", ", b.mecanicas)));
+    }
+
+    /** Guarda a mecânica se o Pokémon for de um dos jogadores monitorados. */
+    private void mecanica(Object event, String nome) {
+        try {
+            Object battle = call(event, "getBattle");
+            Batalha b = emAndamento.get((UUID) call(battle, "getBattleId"));
+            if (b == null) return;
+            Object bp = call(event, "getPokemon");
+            Object poke = call(bp, "getOriginalPokemon");
+            Object dono = null;
+            try { dono = call(call(bp, "getActor"), "getUuid"); } catch (Throwable ignored) { }
+            if (dono == null) {
+                Object player = call(poke, "getOwnerPlayer");
+                if (player instanceof ServerPlayerEntity sp) dono = sp.getUuid();
+            }
+            if (dono == null || !b.jogadores.contains(dono)) return;
+            b.mecanicas.add(nome + " (" + TimeFormatter.especie(poke) + ")");
+        } catch (Throwable t) {
+            IndigoLogMod.LOGGER.debug("IndigoLog: mecânica: {}", t.toString());
+        }
+    }
+
+    /** Dynamax nem sempre gera evento: confere as mensagens do Showdown da batalha. */
+    private void dynamaxPeloRegistro(Batalha b) {
+        try {
+            List<String> lados = new ArrayList<>();
+            for (Object actor : (Iterable<?>) call(b.battle, "getActors")) {
+                if (b.jogadores.contains(call(actor, "getUuid"))) lados.add((String) call(actor, "getShowdownId"));
+            }
+            for (Object o : (List<?>) call(b.battle, "getShowdownMessages")) {
+                String linha = String.valueOf(o);
+                if (!linha.contains("Dynamax") || !linha.contains("-start")) continue;
+                for (String lado : lados) {
+                    if (linha.contains("|" + lado + "a:") || linha.contains("|" + lado + "b:")) {
+                        String nome = linha.replaceAll(".*\\|" + lado + "[ab]: ([^|]+)\\|.*", "$1");
+                        b.mecanicas.add("Dynamax (" + nome + ")");
+                    }
+                }
+            }
+        } catch (Throwable ignored) { }
     }
 
     // ---------- RCT ----------
