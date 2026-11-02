@@ -37,6 +37,10 @@ MODS_FORA = {
     'notenoughanimations',                                # animações do jogador
     'resourcepackoverrides',                              # forçaria os 40 resource packs do PC
     'stackdeobfuscator',                                  # baixa mapeamentos ao abrir o jogo
+    # v1.0.1: mods que só trabalham no servidor (funcionam sem estar no cliente) e pesam na RAM
+    'worldedit', 'impactor', 'gts', 'impactorbattle', 'cobbledollarsbridge',
+    # v1.0.1: menus personalizados (FancyMenu estourou a memória num celular de teste)
+    'fancymenu', 'konkrete', 'melody',
 }
 
 # resource packs leves que entram no celular (o resto do PC é cosmético e pesado)
@@ -45,8 +49,8 @@ PACKS_CELULAR = [
     'Low Fire.zip', 'Classic Grass.zip', 'Comforts Modernized.zip',
 ]
 
-# configs do PC que também vão (tela de carregamento e menus IndigoVerse)
-CONFIGS = ('config/customsplashscreen', 'config/fancymenu', 'config/global_packs.toml')
+# configs do PC que também vão (tela de carregamento IndigoVerse)
+CONFIGS = ('config/customsplashscreen', 'config/global_packs.toml')
 
 OPTIONS = """version:3955
 renderDistance:5
@@ -111,7 +115,7 @@ def servers_dat(nome, ip):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--endereco', default='26.135.84.87:25565')
-    ap.add_argument('--versao', default='1.0.0')
+    ap.add_argument('--versao', default='1.0.1')
     a = ap.parse_args()
 
     distro = json.loads(baixar(DISTRO))
