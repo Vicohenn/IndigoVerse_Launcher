@@ -188,7 +188,8 @@ class ProcessBuilder {
                 const e = ProcessBuilder.isModEnabled(modCfg[mdl.getVersionlessMavenIdentifier()], mdl.getRequired())
                 if(!o || (o && e)){
                     if(mdl.subModules.length > 0){
-                        const v = this.resolveModConfiguration(modCfg[mdl.getVersionlessMavenIdentifier()].mods, mdl.subModules)
+                        const sub = modCfg[mdl.getVersionlessMavenIdentifier()]
+                        const v = this.resolveModConfiguration((sub != null && typeof sub === 'object' && sub.mods) ? sub.mods : {}, mdl.subModules)
                         fMods = fMods.concat(v.fMods)
                         lMods = lMods.concat(v.lMods)
                         if(type === Type.LiteLoader){

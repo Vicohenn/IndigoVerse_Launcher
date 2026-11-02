@@ -50,10 +50,12 @@ jobs:
               mj, mod = info(j)
               jars[mj['id']] = (mj, mod)
           lite = jars['litematica'][1]
+          # Litematica opcional SEM submódulos (o Helios quebra com opcional + submódulo obrigatório);
+          # o MaLiLib vai como mod normal, ao lado.
           lite['required'] = {'value': False, 'def': True}
-          lite['subModules'] = [jars['malilib'][1]]
           srv = d['servers'][0]
           srv['modules'] = [m for m in srv['modules'] if not any(k in m['id'] for k in (':litematica:', ':malilib:'))]
+          srv['modules'].append(jars['malilib'][1])
           srv['modules'].append(lite)
           srv['version'] = srv['version'].split('+')[0] + '+lite'
           json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
