@@ -1,7 +1,7 @@
 name: Mods do servidor (IndigoLog, Guild Tags, IndigoVIP, IndigoSpawn)
 on:
   push:
-    paths: ['server-mods/indigolog/**', 'server-mods/guildtags/**', 'server-mods/indigovip/**', 'server-mods/indigospawn/**', '.github/workflows/indigolog.yml']
+    paths: ['server-mods/indigolog/**', 'server-mods/guildtags/**', 'server-mods/indigovip/**', 'server-mods/indigospawn/**', 'server-mods/legendlimit-patch/**', '.github/workflows/indigolog.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,6 +29,20 @@ jobs:
       - name: Compilar IndigoSpawn
         working-directory: server-mods/indigospawn
         run: gradle build --no-daemon 2>&1 | tee build.log
+      - name: Compilar legendlimit 1.1.1 (barril antigo não deixa itens no chão)
+        working-directory: server-mods/legendlimit-patch
+        run: |
+          set -e
+          gradle build --no-daemon
+          J=$(ls build/libs/legendlimit-patch-*[0-9].jar)
+          rm -rf novo && mkdir novo && cd novo
+          unzip -q ../libs/legendlimit-1.1.0.jar
+          rm -f legend/limit/BarrelConverter*.class
+          unzip -oq "../$J" 'legend/limit/BarrelConverter*.class'
+          sed -i 's/"version": "1.1.0"/"version": "1.1.1"/' fabric.mod.json
+          ls -l legend/limit/
+          zip -qr ../legendlimit-1.1.1.jar .
+          cd .. && javap -p -cp legendlimit-1.1.1.jar legend.limit.BarrelConverter | grep -E 'apagarItensNovos|class_'
       - name: Nomes da classe Explosion (diagnóstico)
         if: always()
         run: |
@@ -47,7 +61,7 @@ jobs:
       - name: Publicar os .jar no repositório (server-mods/dist)
         run: |
           mkdir -p server-mods/dist
-          cp server-mods/indigolog/build/libs/indigolog-*.jar server-mods/guildtags/build/libs/guildtags-*.jar server-mods/indigovip/build/libs/indigovip-*.jar server-mods/indigospawn/build/libs/indigospawn-*.jar server-mods/dist/
+          cp server-mods/indigolog/build/libs/indigolog-*.jar server-mods/guildtags/build/libs/guildtags-*.jar server-mods/indigovip/build/libs/indigovip-*.jar server-mods/indigospawn/build/libs/indigospawn-*.jar server-mods/legendlimit-patch/legendlimit-1.1.1.jar server-mods/dist/
           rm -f server-mods/dist/*-sources.jar
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
