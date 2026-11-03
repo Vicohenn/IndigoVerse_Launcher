@@ -6,7 +6,12 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.block.BarrelBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.util.math.Direction;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.loot.LootTable;
@@ -62,7 +67,7 @@ public class BarrelConverter {
     private record Limpeza(ServerWorld world, Box area, Set<UUID> antes, int[] ticks) {}
 
     private static final java.util.List<Limpeza> LIMPEZAS = new java.util.ArrayList<>();
-    private static final int TICKS_LIMPEZA = 10;
+    private static final int TICKS_LIMPEZA = 100;
 
     private static final Queue<Candidate> QUEUE = new ConcurrentLinkedQueue<>();
     private static final Pattern FACING = Pattern.compile("facing=(down|up|north|south|east|west)");
@@ -111,7 +116,8 @@ public class BarrelConverter {
             Iterator<Limpeza> it = LIMPEZAS.iterator();
             while (it.hasNext()) {
                 Limpeza l = it.next();
-                apagarItensNovos(l.world(), l.area(), l.antes());
+                int n = apagarItensNovos(l.world(), l.area(), l.antes());
+                if (n > 0) LegendLimitMod.LOGGER.info("[legendlimit] {} item(ns) solto(s) perto do barril convertido apagado(s).", n);
                 if (--l.ticks()[0] <= 0) it.remove();
             }
         }
@@ -275,14 +281,25 @@ public class BarrelConverter {
         String facing = m.find() ? m.group(1) : "up";
 
         // itens que já estavam no chão antes da troca (de jogadores etc.) não são tocados
-        Box area = new Box(pos).expand(3);
+        Box area = new Box(pos).expand(5);
         Set<UUID> antes = new HashSet<>();
         for (ItemEntity e : world.getEntitiesByClass(ItemEntity.class, area, x -> true)) antes.add(e.getUuid());
 
-        ServerCommandSource src = server.getCommandSource().withWorld(world).withSilent();
-        server.getCommandManager().executeWithPrefix(src, String.format(
-                "setblock %d %d %d minecraft:barrel[facing=%s]{LootTable:\"%s\"} replace",
-                pos.getX(), pos.getY(), pos.getZ(), facing, tableId));
+        // Remove o bloco antigo SEM deixar ele soltar o conteúdo: tirando o block entity antes da troca,
+        // o barril do Sophisticated Storage não tem o que derrubar no chão.
+        Direction dir = Direction.byName(facing);
+        BlockState novo = Blocks.BARREL.getDefaultState().with(BarrelBlock.FACING, dir == null ? Direction.UP : dir);
+        world.removeBlockEntity(pos);
+        world.setBlockState(pos, novo, Block.NOTIFY_LISTENERS);
+        if (world.getBlockEntity(pos) instanceof LootableContainerBlockEntity lc) {
+            lc.setLootTable(key, world.getRandom().nextLong());
+            lc.markDirty();
+        } else {
+            ServerCommandSource src = server.getCommandSource().withWorld(world).withSilent();
+            server.getCommandManager().executeWithPrefix(src, String.format(
+                    "setblock %d %d %d minecraft:barrel[facing=%s]{LootTable:\"%s\"} replace",
+                    pos.getX(), pos.getY(), pos.getZ(), facing, tableId));
+        }
 
         // apaga tudo o que o barril antigo soltou no chão ao ser trocado; fica só o barril do Lootr
         int apagados = apagarItensNovos(world, area, antes);
