@@ -10,7 +10,7 @@ import java.util.UUID;
  * Quantas vezes o jogador pode usar um item de invocação no altar:
  *   - lendário já CAPTURADO (registrado como capturado na Pokédex): limiteSeCapturado (1)
  *   - ainda não capturado: limiteSeNaoCapturado (5)
- *   - mais os usos extras comprados (/legendlimit comprar)
+ *   - mais os usos extras liberados por doação (UsageData.extras)
  * Itens sem espécie em "itemSpecies" usam o número fixo de "limits".
  */
 public final class Limites {

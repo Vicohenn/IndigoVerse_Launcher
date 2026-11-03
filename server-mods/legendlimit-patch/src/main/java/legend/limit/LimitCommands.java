@@ -1,7 +1,6 @@
 package legend.limit;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -35,13 +34,6 @@ public class LimitCommands {
                                 .then(argument("item", IdentifierArgumentType.identifier())
                                         .executes(ctx -> resetar(ctx,
                                                 IdentifierArgumentType.getIdentifier(ctx, "item"))))))
-                // usado pela loja/NPC: /legendlimit comprar <jogador> <item> [quantidade]
-                .then(literal("comprar")
-                        .then(argument("jogador", GameProfileArgumentType.gameProfile())
-                                .then(argument("item", IdentifierArgumentType.identifier())
-                                        .executes(ctx -> comprar(ctx, 1))
-                                        .then(argument("quantidade", IntegerArgumentType.integer(1, 100))
-                                                .executes(ctx -> comprar(ctx, IntegerArgumentType.getInteger(ctx, "quantidade")))))))
                 .then(literal("recarregar")
                         .executes(ctx -> {
                             LimitConfig.load();
@@ -72,27 +64,6 @@ public class LimitCommands {
                     ? (Limites.capturouItem(p.getId(), item) ? " [capturado]" : " [não capturado]") : "";
             ctx.getSource().sendFeedback(
                     () -> Text.literal(" - " + item + ": " + usados + "/" + limite + cap + (extras > 0 ? " (+" + extras + " comprados)" : "")), false);
-        }
-        return 1;
-    }
-
-    private static int comprar(CommandContext<ServerCommandSource> ctx, int qtd) throws CommandSyntaxException {
-        GameProfile p = umJogador(ctx);
-        if (p == null) return 0;
-        String item = IdentifierArgumentType.getIdentifier(ctx, "item").toString();
-        if (!LimitConfig.get().limits.containsKey(item)) {
-            ctx.getSource().sendError(Text.literal("Esse item não é limitado pelo legendlimit: " + item));
-            return 0;
-        }
-        UsageData data = UsageData.get(ctx.getSource().getServer());
-        data.addExtras(p.getId(), item, qtd);
-        Integer limite = Limites.limite(p.getId(), item, data);
-        int usados = data.getUses(p.getId(), item);
-        ctx.getSource().sendFeedback(() -> Text.literal("+" + qtd + " uso(s) de " + item + " para " + p.getName()
-                + " (" + usados + "/" + limite + ")."), true);
-        var online = ctx.getSource().getServer().getPlayerManager().getPlayer(p.getId());
-        if (online != null) {
-            online.sendMessage(Text.literal("§6Você recebeu " + qtd + " tentativa(s) extra(s) de invocação (" + usados + "/" + limite + ")."), false);
         }
         return 1;
     }

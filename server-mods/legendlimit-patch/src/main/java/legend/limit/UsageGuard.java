@@ -86,7 +86,7 @@ public class UsageGuard {
             String motivo = Limites.capturouItem(player.getUuid(), itemId)
                     ? "Você já capturou este lendário: limite de " + limit + " uso(s) (" + used + "/" + limit + ")."
                     : "Suas " + limit + " chance(s) de captura acabaram (" + used + "/" + limit + ").";
-            sp.sendMessage(Text.literal(motivo + " Novas tentativas só por compra.").formatted(Formatting.RED), true);
+            sp.sendMessage(Text.literal(motivo + " Novas tentativas só por doação.").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
