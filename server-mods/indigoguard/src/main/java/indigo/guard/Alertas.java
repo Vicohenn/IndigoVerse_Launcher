@@ -11,25 +11,32 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Monta e envia os alertas.
- * Duplicação/dinheiro e mineração: só log no Discord.
- * O resto (voo, velocidade, contas no mesmo IP, OP): log + @staff + 4 botões + aviso para a staff no jogo.
+ * Voo, velocidade, contas no mesmo IP, OP: log + @staff + 4 botões (Banir, Banir x tempo, Kick, Ignorar) + aviso no jogo.
+ * Dinheiro, itens raros, mineração: ban automático de 3 dias + log com Desbanir / Banir permanente / Manter.
+ * Pokémon duplicado, pilha impossível: ban permanente automático + log com Desbanir.
  */
 public final class Alertas {
+    public enum Punicao { NENHUMA, TEMPORARIA, PERMANENTE }
+
     public enum Tipo {
-        VOO("Voo (ficou no ar sem estar montado, nadando ou de elytra)", true),
-        VELOCIDADE("Velocidade acima do possível", true),
-        CONTAS("Contas no mesmo IP", true),
-        OP("OP fora da staff", true),
-        DINHEIRO("Dinheiro acima do previsto (duplicação/spawn?)", false),
-        ITENS("Itens raros duplicados/spawnados?", false),
-        MINERACAO("Mineração suspeita", false);
+        VOO("Voo (ficou no ar sem estar montado, nadando ou de elytra)", true, Punicao.NENHUMA),
+        VELOCIDADE("Velocidade acima do possível", true, Punicao.NENHUMA),
+        CONTAS("Contas no mesmo IP", true, Punicao.NENHUMA),
+        OP("OP fora da staff", true, Punicao.NENHUMA),
+        DINHEIRO("Dinheiro acima do previsto (duplicação/spawn?)", false, Punicao.TEMPORARIA),
+        ITENS("Itens raros duplicados/spawnados?", false, Punicao.TEMPORARIA),
+        MINERACAO("Mineração suspeita (x-ray?)", false, Punicao.TEMPORARIA),
+        DUPE_POKEMON("Pokémon duplicado", false, Punicao.PERMANENTE),
+        DUPE_PILHA("Pilha impossível de item (duplicação)", false, Punicao.PERMANENTE);
 
         public final String nome;
         public final boolean chamaStaff;
+        public final Punicao punicao;
 
-        Tipo(String nome, boolean chamaStaff) {
+        Tipo(String nome, boolean chamaStaff, Punicao punicao) {
             this.nome = nome;
             this.chamaStaff = chamaStaff;
+            this.punicao = punicao;
         }
     }
 
@@ -57,9 +64,16 @@ public final class Alertas {
         sb.append("**Local:** ").append(local == null ? "—" : local);
         for (String e : extras) sb.append("\n• ").append(e);
 
-        IndigoGuardMod.LOGGER.warn("[IndigoGuard] {} | {} ({}) | {} | {}", tipo.nome, nick, uuid, local, String.join(" | ", extras));
-        Discord.enviarAlerta(sb.toString(), tipo.chamaStaff, uuid);
+        // punição automática (dinheiro, itens, mineração: ban temporário; duplicação comprovada: permanente)
+        String punicao = Punicoes.aplicar(server, tipo, nick, uuid);
+        if (punicao != null) sb.append("\n**Punição automática:** ").append(punicao);
 
+        IndigoGuardMod.LOGGER.warn("[IndigoGuard] {} | {} ({}) | {} | {} | {}", tipo.nome, nick, uuid, local, String.join(" | ", extras), punicao);
+        Discord.enviarAlerta(sb.toString(), tipo.chamaStaff, punicao != null, uuid);
+
+        if (punicao != null) {
+            Acoes.avisarStaff(server, "§c" + nick + " §f— " + tipo.nome + ": §c" + punicao + " §7(revise no Discord)");
+        }
         if (tipo.chamaStaff) {
             String msg = "§8[§cIndigoGuard§8] §c" + nick + " §f— " + tipo.nome + (local == null ? "" : " §7em " + local)
                     + (extras.isEmpty() ? "" : "\n§7" + String.join("\n§7", extras));

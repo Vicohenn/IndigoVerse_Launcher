@@ -34,6 +34,11 @@ public final class Acoes {
                     avisarStaff(server, "§e" + staff + " expulsou " + nick + " (IndigoGuard).");
                     return "✅ ACAO EXECUTADA: kick em " + nick + " (por " + staff + ")";
                 }
+                case "unban" -> {
+                    server.getPlayerManager().getUserBanList().remove(perfil);
+                    avisarStaff(server, "§a" + staff + " desbaniu " + nick + " (IndigoGuard).");
+                    return "✅ ACAO EXECUTADA: " + nick + " desbanido (por " + staff + ")";
+                }
                 case "ban", "tempban" -> {
                     Date fim = null;
                     if (acao.equals("tempban")) {
@@ -57,6 +62,18 @@ public final class Acoes {
         } catch (Exception e) {
             IndigoGuardMod.LOGGER.warn("IndigoGuard: erro executando ação {}: {}", a, e.toString());
             return "⚠️ Erro executando a ação: " + e.getMessage();
+        }
+    }
+
+    /** Ban direto (usado pela punição automática). fim = null -> permanente. */
+    public static void banir(MinecraftServer server, UUID uuid, String nick, Date fim, String motivo) {
+        GameProfile perfil = new GameProfile(uuid, nick);
+        server.getPlayerManager().getUserBanList().add(new BannedPlayerEntry(perfil, new Date(), "IndigoGuard (automático)", fim, motivo));
+        ServerPlayerEntity online = server.getPlayerManager().getPlayer(uuid);
+        if (online != null) {
+            String ate = fim == null ? "permanente" : "até " + new SimpleDateFormat("dd/MM/yyyy HH:mm").format(fim);
+            online.networkHandler.disconnect(Text.literal("Você foi banido (" + ate + ").\n" + motivo
+                    + "\nSe for engano, fale com a staff no Discord."));
         }
     }
 

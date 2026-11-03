@@ -38,7 +38,7 @@ public final class Economia {
     public static void tick(MinecraftServer server) {
         if (!GuardConfig.get().economiaAtivo || ++ticks % 100 != 0) return; // a cada 5 s
         long agora = System.currentTimeMillis();
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity p : new java.util.ArrayList<>(server.getPlayerManager().getPlayerList())) {
             if (Alertas.ehStaffOnline(p) || p.isCreative()) { HIST.remove(p.getUuid()); continue; }
             Amostra a = new Amostra(agora, dinheiro(p), contarItens(p));
             Deque<Amostra> h = HIST.computeIfAbsent(p.getUuid(), k -> new ArrayDeque<>());

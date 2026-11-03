@@ -37,7 +37,7 @@ public final class Movimento {
     public static void tick(MinecraftServer server) {
         GuardConfig cfg = GuardConfig.get();
         if (!cfg.movimentoAtivo) return;
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity p : new java.util.ArrayList<>(server.getPlayerManager().getPlayerList())) {
             Estado e = ESTADOS.computeIfAbsent(p.getUuid(), k -> new Estado());
             Vec3d agora = p.getPos();
             Vec3d antes = e.ultima;

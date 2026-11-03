@@ -59,6 +59,13 @@ public final class GuardConfig {
     /** Nome do grupo -> quantos em 10 minutos antes de virar alerta */
     public Map<String, Integer> limiteMinerios = limitesPadrao();
 
+    // ---------- punição automática ----------
+    /** Dinheiro, itens raros e mineração: ban automático de N dias + revisão da staff (0 = só alerta). */
+    public int banAutomaticoDias = 3;
+    /** Pokémon duplicado e pilha impossível de item: ban permanente automático (false = ban de banAutomaticoDias). */
+    public boolean dupeBanPermanente = true;
+    public boolean duplicacaoAtivo = true;
+
     /** Segundos entre dois alertas do mesmo tipo para o mesmo jogador. */
     public int cooldownSegundos = 120;
 

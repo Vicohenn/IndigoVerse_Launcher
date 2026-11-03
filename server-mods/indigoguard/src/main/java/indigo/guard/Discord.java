@@ -48,7 +48,7 @@ public final class Discord {
 
     // ---------------- alertas ----------------
 
-    public static void enviarAlerta(String texto, boolean comBotoes, UUID suspeito) {
+    public static void enviarAlerta(String texto, boolean comBotoes, boolean revisao, UUID suspeito) {
         GuardConfig cfg = GuardConfig.get();
         if (!pronto(cfg.canalLogs)) {
             IndigoGuardMod.LOGGER.warn("IndigoGuard: Discord não configurado; alerta só no log do servidor.");
@@ -63,12 +63,19 @@ public final class Discord {
         allowed.add("parse", new JsonArray());
         allowed.add("roles", roles);
         corpo.add("allowed_mentions", allowed);
-        if (comBotoes && suspeito != null) {
+        if ((comBotoes || revisao) && suspeito != null) {
             JsonArray linha = new JsonArray();
-            linha.add(botao("Banir", "ig:ban:" + suspeito, 4));
-            linha.add(botao("Banir x tempo", "ig:tempban:" + suspeito, 4));
-            linha.add(botao("Kick", "ig:kick:" + suspeito, 2));
-            linha.add(botao("Ignorar", "ig:ignore:" + suspeito, 2));
+            if (revisao) {
+                // já foi banido automaticamente: a staff revisa
+                linha.add(botao("Desbanir", "ig:unban:" + suspeito, 3));
+                linha.add(botao("Banir permanente", "ig:ban:" + suspeito, 4));
+                linha.add(botao("Manter", "ig:ignore:" + suspeito, 2));
+            } else {
+                linha.add(botao("Banir", "ig:ban:" + suspeito, 4));
+                linha.add(botao("Banir x tempo", "ig:tempban:" + suspeito, 4));
+                linha.add(botao("Kick", "ig:kick:" + suspeito, 2));
+                linha.add(botao("Ignorar", "ig:ignore:" + suspeito, 2));
+            }
             JsonObject row = new JsonObject();
             row.addProperty("type", 1);
             row.add("components", linha);

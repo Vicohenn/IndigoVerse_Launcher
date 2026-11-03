@@ -43,6 +43,7 @@ public final class IndigoGuardMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             try { Movimento.tick(server); } catch (Throwable t) { LOGGER.debug("movimento: {}", t.toString()); }
             try { Economia.tick(server); } catch (Throwable t) { LOGGER.debug("economia: {}", t.toString()); }
+            try { Duplicacao.tick(server); } catch (Throwable t) { LOGGER.debug("duplicação: {}", t.toString()); }
             try { OpWatch.tick(server); } catch (Throwable t) { LOGGER.debug("op: {}", t.toString()); }
         });
 
