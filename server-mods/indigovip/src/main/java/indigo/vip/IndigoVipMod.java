@@ -38,6 +38,8 @@ public final class IndigoVipMod implements ModInitializer {
             CommandSource.suggestMatching(VipConfig.get().niveis.stream().map(n -> n.id), b);
     private static final SuggestionProvider<ServerCommandSource> JOGADORES = (c, b) ->
             CommandSource.suggestMatching(c.getSource().getServer().getPlayerNames(), b);
+    private static final com.mojang.brigadier.suggestion.SuggestionProvider<ServerCommandSource> CARGOS = (c, b) ->
+            CommandSource.suggestMatching(VipConfig.get().cargosStaff.stream().map(x -> x.id).toList(), b);
 
     @Override
     public void onInitialize() {
@@ -98,6 +100,17 @@ public final class IndigoVipMod implements ModInitializer {
                             return 1;
                         }))));
 
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
+                literal("cargo").requires(s -> s.hasPermissionLevel(3))
+                        .then(literal("definir")
+                                .then(argument("nick", StringArgumentType.word()).suggests(JOGADORES)
+                                        .then(argument("cargo", StringArgumentType.word()).suggests(CARGOS)
+                                                .executes(IndigoVipMod::definirCargo))))
+                        .then(literal("remover")
+                                .then(argument("nick", StringArgumentType.word()).suggests(JOGADORES)
+                                        .executes(IndigoVipMod::removerCargo)))
+                        .then(literal("lista").executes(IndigoVipMod::listaCargos))));
+
         LOGGER.info("IndigoVIP carregado: {} níveis, {} apoiadores.", VipConfig.get().niveis.size(), Apoiadores.todos().size());
     }
 
@@ -143,6 +156,46 @@ public final class IndigoVipMod implements ModInitializer {
                     sb.append("\n").append(Tags.cor(n == null ? r.nivel : n.prefixo)).append("§f").append(r.nick)
                       .append(" §7").append(Entrega.validade(r.expiraEm));
                 });
+        c.getSource().sendFeedback(() -> Text.literal(sb.toString()), false);
+        return 1;
+    }
+
+    private static int definirCargo(CommandContext<ServerCommandSource> c) {
+        String nick = StringArgumentType.getString(c, "nick");
+        String id = StringArgumentType.getString(c, "cargo");
+        if (!nick.matches("[A-Za-z0-9_]{3,16}")) { c.getSource().sendError(Text.literal("Nick inválido.")); return 0; }
+        VipConfig.Cargo cargo = VipConfig.get().cargo(id);
+        if (cargo == null) { c.getSource().sendError(Text.literal("Cargo inexistente. Use: dono, adm, mod ou aux.")); return 0; }
+        VipConfig.get().staff.keySet().removeIf(k -> k.equalsIgnoreCase(nick));
+        VipConfig.get().staff.put(nick, cargo.id);
+        VipConfig.save();
+        Tags.aplicar(c.getSource().getServer(), nick);
+        c.getSource().sendFeedback(() -> Text.literal("§a" + nick + " agora é §f" + nick + Tags.cor(cargo.sufixo)), true);
+        return 1;
+    }
+
+    private static int removerCargo(CommandContext<ServerCommandSource> c) {
+        String nick = StringArgumentType.getString(c, "nick");
+        boolean ok = VipConfig.get().staff.keySet().removeIf(k -> k.equalsIgnoreCase(nick));
+        if (!ok) { c.getSource().sendError(Text.literal(nick + " não tem cargo de staff.")); return 0; }
+        VipConfig.save();
+        Tags.aplicar(c.getSource().getServer(), nick);
+        c.getSource().sendFeedback(() -> Text.literal("§aCargo de " + nick + " removido."), true);
+        return 1;
+    }
+
+    private static int listaCargos(CommandContext<ServerCommandSource> c) {
+        StringBuilder sb = new StringBuilder("§6§lStaff§r");
+        VipConfig.get().staff.entrySet().stream()
+                .sorted(Comparator.comparingInt((java.util.Map.Entry<String, String> e) -> {
+                    VipConfig.Cargo x = VipConfig.get().cargo(e.getValue());
+                    return x == null ? 99 : x.ordem;
+                }).thenComparing(e -> e.getKey().toLowerCase()))
+                .forEach(e -> {
+                    VipConfig.Cargo x = VipConfig.get().cargo(e.getValue());
+                    sb.append("\n§f").append(e.getKey()).append(Tags.cor(x == null ? " (" + e.getValue() + "?)" : x.sufixo));
+                });
+        if (VipConfig.get().staff.isEmpty()) sb.append("\n§7Ninguém ainda. Use /cargo definir <nick> <dono|adm|mod|aux>.");
         c.getSource().sendFeedback(() -> Text.literal(sb.toString()), false);
         return 1;
     }

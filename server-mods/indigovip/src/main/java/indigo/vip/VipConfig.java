@@ -39,6 +39,22 @@ public final class VipConfig {
         }
     }
 
+    /** Cargo de staff: aparece depois do nick, ex.: CrazyTommyBR (Dono). */
+    public static final class Cargo {
+        public String id;
+        public String nome;
+        /** 1 = mais alto (fica no topo do TAB). */
+        public int ordem;
+        /** Texto depois do nick (aceita & para cores). */
+        public String sufixo;
+        public String corDoNick;
+
+        Cargo() {}
+        Cargo(String id, String nome, int ordem, String sufixo, String cor) {
+            this.id = id; this.nome = nome; this.ordem = ordem; this.sufixo = sufixo; this.corDoNick = cor;
+        }
+    }
+
     public static final class Produto {
         public String nome;
         /** true = só entrega com o jogador online (ex.: dar item). */
@@ -61,6 +77,10 @@ public final class VipConfig {
     public String mensagemAnuncio = "&6✦ &f{nick} &7agora é apoiador {prefixo}&7! Obrigado por ajudar o IndigoVerse!";
     public List<Nivel> niveis = new ArrayList<>();
     public Map<String, Produto> produtos = new LinkedHashMap<>();
+    /** Cargos de staff disponíveis. */
+    public List<Cargo> cargosStaff = new ArrayList<>();
+    /** Nick -> id do cargo de staff. Use /cargo definir <nick> <cargo>. */
+    public Map<String, String> staff = new LinkedHashMap<>();
 
     public static VipConfig get() { return instance; }
 
@@ -90,6 +110,8 @@ public final class VipConfig {
         if (instance.produtos == null) instance.produtos = new LinkedHashMap<>();
         if (instance.discordToken == null) instance.discordToken = "";
         if (instance.discordCanalFila == null) instance.discordCanalFila = "";
+        if (instance.cargosStaff == null || instance.cargosStaff.isEmpty()) instance.cargosStaff = cargosPadrao();
+        if (instance.staff == null) instance.staff = new LinkedHashMap<>();
         save();   // grava campos novos no arquivo
     }
 
@@ -108,6 +130,27 @@ public final class VipConfig {
         if (id == null) return null;
         for (Nivel n : niveis) if (n.id.equalsIgnoreCase(id)) return n;
         return null;
+    }
+
+    public Cargo cargo(String id) {
+        if (id == null) return null;
+        for (Cargo c : cargosStaff) if (c.id.equalsIgnoreCase(id)) return c;
+        return null;
+    }
+
+    /** Cargo de staff do jogador (ignora maiúsculas no nick). */
+    public Cargo cargoDe(String nick) {
+        for (Map.Entry<String, String> e : staff.entrySet()) if (e.getKey().equalsIgnoreCase(nick)) return cargo(e.getValue());
+        return null;
+    }
+
+    private static List<Cargo> cargosPadrao() {
+        List<Cargo> l = new ArrayList<>();
+        l.add(new Cargo("dono", "Dono", 1, " &8(&eDono&8)", "yellow"));
+        l.add(new Cargo("adm", "Adm", 2, " &8(&fAdm&8)", "white"));
+        l.add(new Cargo("mod", "Mod", 3, " &8(&cMod&8)", "red"));
+        l.add(new Cargo("aux", "Aux", 4, " &8(&9Aux&8)", "blue"));
+        return l;
     }
 
     private static VipConfig padrao() {
