@@ -24,6 +24,8 @@ public class LimitConfig {
     // usos no altar: já tem o lendário CAPTURADO na Pokédex / ainda não capturou
     public int limiteSeCapturado = 1;
     public int limiteSeNaoCapturado = 5;
+    // quantas rodadas extras o /adicionar pode liberar por jogador e item
+    public int maxAdicionar = 2;
 
     // estrutura -> item que o barril dela deve entregar (usado pelo comando "reparar")
     public Map<String, String> structureItems = new LinkedHashMap<>();

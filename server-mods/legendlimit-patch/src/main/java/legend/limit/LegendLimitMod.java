@@ -14,6 +14,7 @@ public class LegendLimitMod implements ModInitializer {
 		BarrelConverter.register();
 		LimitConfig.load();
 		UsageGuard.register();
+		Limites.registrarCaptura();
 		StarterLock.register();
 		CommandRegistrationCallback.EVENT.register(LimitCommands::register);
 	}

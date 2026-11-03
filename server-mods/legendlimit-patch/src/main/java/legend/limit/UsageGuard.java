@@ -83,10 +83,13 @@ public class UsageGuard {
         if (limit == null) return ActionResult.PASS;
 
         if (used >= limit) {
-            String motivo = Limites.capturouItem(player.getUuid(), itemId)
-                    ? "Você já capturou este lendário: limite de " + limit + " uso(s) (" + used + "/" + limit + ")."
-                    : "Suas " + limit + " chance(s) de captura acabaram (" + used + "/" + limit + ").";
-            sp.sendMessage(Text.literal(motivo + " Novas tentativas só por doação.").formatted(Formatting.RED), true);
+            UUID id = player.getUuid();
+            String motivo = Limites.capturouNaRodada(id, itemId, data)
+                    ? "Você já capturou este lendário nesta rodada (" + used + "/" + limit + ")."
+                    : "Suas " + limit + " tentativa(s) desta rodada acabaram (" + used + "/" + limit + ").";
+            boolean podeMais = Limites.temEspecie(itemId) && data.getAdicionados(id, itemId) < LimitConfig.get().maxAdicionar;
+            sp.sendMessage(Text.literal(motivo + (podeMais ? " Novas tentativas só por doação." : " Você já usou todas as rodadas deste lendário."))
+                    .formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -116,8 +119,7 @@ public class UsageGuard {
                 int used = data.getUses(p.player, p.itemId);
                 Integer limit = Limites.limite(p.player, p.itemId, data);
                 if (limit != null) {
-                    String extra = Limites.capturouItem(p.player, p.itemId) ? " (lendário já capturado)" : " (chances de captura)";
-                    player.sendMessage(Text.literal("Invocações usadas: " + used + "/" + limit + extra + ".")
+                    player.sendMessage(Text.literal("Invocações usadas: " + used + "/" + limit + Limites.descricao(p.player, p.itemId, data) + ".")
                             .formatted(Formatting.GOLD), false);
                 }
                 it.remove();

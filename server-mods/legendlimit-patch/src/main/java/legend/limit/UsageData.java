@@ -9,44 +9,64 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Por jogador e por item de invocação:
+ *   uses         tentativas usadas na rodada atual
+ *   adicionados  quantas rodadas extras foram liberadas pelo /adicionar (máx. 2)
+ *   limiteRodada tentativas da rodada atual liberadas pelo /adicionar (0 = padrão do config)
+ *   capturado    1 se o jogador capturou o lendário durante a rodada atual
+ */
 public class UsageData extends PersistentState {
 
-    // jogador -> (id do item -> quantas vezes usou)
     private final Map<UUID, Map<String, Integer>> uses = new HashMap<>();
-    // jogador -> (id do item -> usos extras comprados)
-    private final Map<UUID, Map<String, Integer>> extras = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> adicionados = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> limiteRodada = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> capturado = new HashMap<>();
 
-    public int getExtras(UUID player, String itemId) {
-        return extras.getOrDefault(player, Map.of()).getOrDefault(itemId, 0);
+    private static int ler(Map<UUID, Map<String, Integer>> m, UUID p, String item) {
+        return m.getOrDefault(p, Map.of()).getOrDefault(item, 0);
     }
 
-    public void addExtras(UUID player, String itemId, int qtd) {
-        extras.computeIfAbsent(player, k -> new HashMap<>()).merge(itemId, qtd, Integer::sum);
+    private void gravar(Map<UUID, Map<String, Integer>> m, UUID p, String item, int v) {
+        m.computeIfAbsent(p, k -> new HashMap<>()).put(item, v);
         markDirty();
     }
 
-    public int getUses(UUID player, String itemId) {
-        return uses.getOrDefault(player, Map.of()).getOrDefault(itemId, 0);
-    }
+    public int getUses(UUID player, String itemId) { return ler(uses, player, itemId); }
 
-    public void addUse(UUID player, String itemId) {
-        uses.computeIfAbsent(player, k -> new HashMap<>()).merge(itemId, 1, Integer::sum);
-        markDirty();
+    public void addUse(UUID player, String itemId) { gravar(uses, player, itemId, getUses(player, itemId) + 1); }
+
+    public int getAdicionados(UUID player, String itemId) { return ler(adicionados, player, itemId); }
+
+    public int getLimiteRodada(UUID player, String itemId) { return ler(limiteRodada, player, itemId); }
+
+    public boolean isCapturado(UUID player, String itemId) { return ler(capturado, player, itemId) == 1; }
+
+    public void setCapturado(UUID player, String itemId) { gravar(capturado, player, itemId, 1); }
+
+    /** Começa uma rodada nova liberada pelo /adicionar. */
+    public void novaRodada(UUID player, String itemId, int tentativas) {
+        gravar(adicionados, player, itemId, getAdicionados(player, itemId) + 1);
+        gravar(limiteRodada, player, itemId, tentativas);
+        gravar(uses, player, itemId, 0);
+        gravar(capturado, player, itemId, 0);
     }
 
     /** Zera todas as contagens do jogador. */
     public void reset(UUID player) {
         uses.remove(player);
-        extras.remove(player);
+        adicionados.remove(player);
+        limiteRodada.remove(player);
+        capturado.remove(player);
         markDirty();
     }
 
     /** Zera só a contagem de um item do jogador. */
     public void reset(UUID player, String itemId) {
-        Map<String, Integer> map = uses.get(player);
-        if (map != null) map.remove(itemId);
-        Map<String, Integer> ex = extras.get(player);
-        if (ex != null) ex.remove(itemId);
+        for (Map<UUID, Map<String, Integer>> m : java.util.List.of(uses, adicionados, limiteRodada, capturado)) {
+            Map<String, Integer> map = m.get(player);
+            if (map != null) map.remove(itemId);
+        }
         markDirty();
     }
 
@@ -63,16 +83,10 @@ public class UsageData extends PersistentState {
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        NbtCompound players = new NbtCompound();
-        for (Map.Entry<UUID, Map<String, Integer>> p : uses.entrySet()) {
-            NbtCompound items = new NbtCompound();
-            for (Map.Entry<String, Integer> i : p.getValue().entrySet()) {
-                items.putInt(i.getKey(), i.getValue());
-            }
-            players.put(p.getKey().toString(), items);
-        }
-        nbt.put("players", players);
-        nbt.put("extras", salvar(extras));
+        nbt.put("players", salvar(uses));            // mesmo nome de antes: mantém as contagens já salvas
+        nbt.put("adicionados", salvar(adicionados));
+        nbt.put("limiteRodada", salvar(limiteRodada));
+        nbt.put("capturado", salvar(capturado));
         return nbt;
     }
 
@@ -86,24 +100,21 @@ public class UsageData extends PersistentState {
         return players;
     }
 
-    public static UsageData fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        UsageData data = new UsageData();
-        NbtCompound players = nbt.getCompound("players");
-        for (String uuid : players.getKeys()) {
-            NbtCompound items = players.getCompound(uuid);
-            Map<String, Integer> map = new HashMap<>();
-            for (String itemId : items.getKeys()) {
-                map.put(itemId, items.getInt(itemId));
-            }
-            data.uses.put(UUID.fromString(uuid), map);
-        }
-        NbtCompound ex = nbt.getCompound("extras");
-        for (String uuid : ex.getKeys()) {
-            NbtCompound items = ex.getCompound(uuid);
+    private static void carregar(NbtCompound tag, Map<UUID, Map<String, Integer>> destino) {
+        for (String uuid : tag.getKeys()) {
+            NbtCompound items = tag.getCompound(uuid);
             Map<String, Integer> map = new HashMap<>();
             for (String itemId : items.getKeys()) map.put(itemId, items.getInt(itemId));
-            data.extras.put(UUID.fromString(uuid), map);
+            destino.put(UUID.fromString(uuid), map);
         }
+    }
+
+    public static UsageData fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+        UsageData data = new UsageData();
+        carregar(nbt.getCompound("players"), data.uses);
+        carregar(nbt.getCompound("adicionados"), data.adicionados);
+        carregar(nbt.getCompound("limiteRodada"), data.limiteRodada);
+        carregar(nbt.getCompound("capturado"), data.capturado);
         return data;
     }
 }

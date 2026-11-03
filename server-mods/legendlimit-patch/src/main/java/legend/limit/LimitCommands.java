@@ -1,6 +1,7 @@
 package legend.limit;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -23,6 +24,15 @@ public class LimitCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                                 CommandRegistryAccess registryAccess,
                                 CommandManager.RegistrationEnvironment environment) {
+        // /adicionar <jogador> <item> <1-5>: libera uma rodada nova de tentativas (máx. 2 por jogador e item)
+        dispatcher.register(literal("adicionar")
+                .requires(src -> src.hasPermissionLevel(2))
+                .then(argument("jogador", GameProfileArgumentType.gameProfile())
+                        .then(argument("item", IdentifierArgumentType.identifier())
+                                .suggests((c, b) -> net.minecraft.command.CommandSource.suggestMatching(LimitConfig.get().limits.keySet(), b))
+                                .then(argument("tentativas", IntegerArgumentType.integer(1, 5))
+                                        .executes(ctx -> adicionar(ctx, IntegerArgumentType.getInteger(ctx, "tentativas")))))));
+
         dispatcher.register(literal("legendlimit")
                 .requires(src -> src.hasPermissionLevel(2))
                 .then(literal("ver")
@@ -59,11 +69,40 @@ public class LimitCommands {
         for (String item : LimitConfig.get().limits.keySet()) {
             int usados = data.getUses(p.getId(), item);
             Integer limite = Limites.limite(p.getId(), item, data);
-            int extras = data.getExtras(p.getId(), item);
-            String cap = LimitConfig.get().itemSpecies.containsKey(item)
-                    ? (Limites.capturouItem(p.getId(), item) ? " [capturado]" : " [não capturado]") : "";
-            ctx.getSource().sendFeedback(
-                    () -> Text.literal(" - " + item + ": " + usados + "/" + limite + cap + (extras > 0 ? " (+" + extras + " comprados)" : "")), false);
+            String desc = Limites.descricao(p.getId(), item, data);
+            ctx.getSource().sendFeedback(() -> Text.literal(" - " + item + ": " + usados + "/" + limite + desc), false);
+        }
+        return 1;
+    }
+
+    private static int adicionar(CommandContext<ServerCommandSource> ctx, int tentativas) throws CommandSyntaxException {
+        GameProfile p = umJogador(ctx);
+        if (p == null) return 0;
+        String item = IdentifierArgumentType.getIdentifier(ctx, "item").toString();
+        LimitConfig cfg = LimitConfig.get();
+        if (!cfg.limits.containsKey(item)) {
+            ctx.getSource().sendError(Text.literal("Esse item não é limitado pelo legendlimit: " + item));
+            return 0;
+        }
+        UsageData data = UsageData.get(ctx.getSource().getServer());
+        int feitas = data.getAdicionados(p.getId(), item);
+        if (feitas >= cfg.maxAdicionar) {
+            ctx.getSource().sendError(Text.literal(p.getName() + " já recebeu as " + cfg.maxAdicionar + " rodadas extras de " + item + "."));
+            return 0;
+        }
+        if (!Limites.rodadaEncerrada(p.getId(), item, data)) {
+            Integer lim = Limites.limite(p.getId(), item, data);
+            ctx.getSource().sendError(Text.literal(p.getName() + " ainda tem tentativas nesta rodada ("
+                    + data.getUses(p.getId(), item) + "/" + lim + "). Libere a próxima só quando ela acabar."));
+            return 0;
+        }
+        data.novaRodada(p.getId(), item, tentativas);
+        int rodada = feitas + 2;
+        ctx.getSource().sendFeedback(() -> Text.literal("Rodada " + rodada + " liberada para " + p.getName() + ": "
+                + item + " 0/" + tentativas + " (extras usados: " + (feitas + 1) + "/" + cfg.maxAdicionar + ")."), true);
+        var online = ctx.getSource().getServer().getPlayerManager().getPlayer(p.getId());
+        if (online != null) {
+            Limites.avisar(online, "Você recebeu uma nova rodada de " + tentativas + " tentativa(s) de invocação (0/" + tentativas + ").");
         }
         return 1;
     }
