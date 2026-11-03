@@ -2,3 +2,8 @@
 resourcepacks/COBBLEVERSE Soundtrack.zip
 resourcepacks/JigglyRadio.zip
 resourcepacks/Original Pokemon Battle Music.zip
+# Removidos do modpack a pedido do dono (2026-11-02)
+indigoverse:itemcleaner:1.2@jar
+indigoverse:obc:1.5.0-fabric@jar
+indigoverse:simpletms:2.3.3@jar
+mods/!DoctorsDOUBLE-BATTLE-EVERYTHING.zip
