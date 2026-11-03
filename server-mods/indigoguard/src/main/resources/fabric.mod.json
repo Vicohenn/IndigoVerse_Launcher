@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "indigoguard",
+  "version": "${version}",
+  "name": "IndigoGuard",
+  "description": "Alertas de trapaça para a staff do IndigoVerse (voo, velocidade, contas no mesmo IP, dinheiro e itens raros, OP fora da staff, mineração) com log e botões no Discord.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.guard.IndigoGuardMod"] },
+  "mixins": ["indigoguard.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
