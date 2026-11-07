@@ -3,15 +3,24 @@
   "id": "indigocoins",
   "version": "${version}",
   "name": "IndigoCoins",
-  "description": "Indigo Coins presas ao dono (ID de 12 dígitos), venda entre jogadores por CobbleDollars, loja de coins, raspadinha com sorteio e drop raro de trainers do RCT.",
-  "authors": ["IndigoVerse"],
+  "description": "Indigo Coins presas ao dono (ID de 12 dígitos), venda entre jogadores por CobbleDollars, loja de coins, raspadinha com sorteio e drop raro de trainers do RCT. Amulet Coin: dobra o dinheiro de batalhas por 1 hora.",
+  "authors": [
+    "IndigoVerse"
+  ],
   "license": "MIT",
   "environment": "server",
-  "entrypoints": { "main": ["indigo.coins.IndigoCoinsMod"] },
+  "entrypoints": {
+    "main": [
+      "indigo.coins.IndigoCoinsMod"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.16.0",
     "minecraft": "~1.21.1",
     "java": ">=21",
     "fabric-api": "*"
-  }
+  },
+  "mixins": [
+    "indigocoins.mixins.json"
+  ]
 }

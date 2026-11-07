@@ -49,6 +49,15 @@ public final class Config {
             new ItemLoja("master_ball", "Master Ball", 2, "give {nick} cobblemon:master_ball 1"),
             new ItemLoja("vip_treinador", "VIP Treinador (30 dias)", 10, "vip dar {nick} treinador 30")));
 
+    // ---------- Amulet Coin ----------
+    /** Item usado como base (só os marcados pela loja funcionam). */
+    public String amuletoItemBase = "cobblemon:amulet_coin";
+    /** Preço por /amuleto npccomprar (botão do NPC) e /amuleto comprar. */
+    public long precoAmuleto = 150000;
+    public int amuletoMultiplicador = 2;
+    /** Quantas horas dá para acumular usando vários amuletos. */
+    public int amuletoMaxHorasAcumuladas = 5;
+
     // ---------- relatório (testes) ----------
     /** Planilha (CSV, abre no Excel) com cada rodada. Caminho relativo à pasta do servidor. */
     public boolean relatorioAtivo = true;

@@ -70,13 +70,20 @@ public final class IndigoCoinsMod implements ModInitializer {
     @Override
     public void onInitialize() {
         Dados.carregar();
+        Amuleto.carregar();
+        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
+            if (player instanceof ServerPlayerEntity sp) return Amuleto.usar(sp, hand);
+            return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> Amuleto.salvar());
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Raspadinha.garantirRodada(server);
             Raspadinha.relatorio();
             RctDrops.registrar(server);
         });
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> {
-            if (Dados.pendentes.containsKey(h.player.getGameProfile().getName().toLowerCase(Locale.ROOT)))
+            String k = h.player.getGameProfile().getName().toLowerCase(Locale.ROOT);
+            if (Dados.pendentes.containsKey(k) || Dados.amuletosPendentes.containsKey(k))
                 aguardandoLogin.put(h.player.getUuid(), ticks + 20L * 300);
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -85,12 +92,20 @@ public final class IndigoCoinsMod implements ModInitializer {
                     ServerPlayerEntity p = server.getPlayerManager().getPlayer(e.getKey());
                     if (p == null) return true;
                     if (!autenticado(p) && e.getValue() > ticks) return false;   // espera o login do EasyAuth
-                    Integer q = Dados.pendentes.remove(p.getGameProfile().getName().toLowerCase(Locale.ROOT));
-                    if (q != null && q > 0) { Dados.salvarPendentes(); entregar(p, q); }
+                    String k = p.getGameProfile().getName().toLowerCase(Locale.ROOT);
+                    Integer q = Dados.pendentes.remove(k);
+                    Integer a = Dados.amuletosPendentes.remove(k);
+                    if (q != null || a != null) Dados.salvarPendentes();
+                    if (q != null && q > 0) entregar(p, q);
+                    if (a != null && a > 0) entregarAmuleto(p, a);
                     return true;
                 });
             }
-            if (++ticks % 1200 == 0) Raspadinha.garantirRodada(server);   // confere as 24 h a cada minuto
+            if (ticks % 20 == 0) Amuleto.tick(server);
+            if (++ticks % 1200 == 0) {
+                Raspadinha.garantirRodada(server);   // confere as 24 h a cada minuto
+                Amuleto.salvarSeMudou();
+            }
         });
         CommandRegistrationCallback.EVENT.register((d, reg, env) -> {
             d.register(literal("indigocoins")
@@ -165,7 +180,60 @@ public final class IndigoCoinsMod implements ModInitializer {
                                 return 1;
                             }))));
         });
+        CommandRegistrationCallback.EVENT.register((d, reg, env) -> d.register(literal("amuleto")
+                .executes(c -> {
+                    ServerPlayerEntity p = c.getSource().getPlayerOrThrow();
+                    Long r = Amuleto.ativos.get(p.getUuidAsString());
+                    c.getSource().sendFeedback(() -> Text.literal(r == null || r <= 0
+                            ? "§7Você não tem Amulet Coin ativa. Ela custa " + Economia.fmt(Dados.config.precoAmuleto) + " CobbleDollars no Sr. Fujiro Nakombi."
+                            : "§6Amulet Coin ativa: §f" + Amuleto.tempo(r) + "§6 de dinheiro de batalhas em dobro."), false);
+                    return 1;
+                })
+                .then(literal("npccomprar").requires(x -> x.hasPermissionLevel(Dados.config.permissaoConferir))
+                        .then(argument("jogador", EntityArgumentType.player())
+                                .executes(c -> comprarPorSaldo(EntityArgumentType.getPlayer(c, "jogador"), 1, true))
+                                .then(argument("quantidade", IntegerArgumentType.integer(1, 64))
+                                        .executes(c -> comprarPorSaldo(EntityArgumentType.getPlayer(c, "jogador"), IntegerArgumentType.getInteger(c, "quantidade"), true)))))
+                .then(literal("dar").requires(x -> x.hasPermissionLevel(2))
+                        .then(argument("nick", StringArgumentType.word())
+                                .suggests((c, b) -> CommandSource.suggestMatching(c.getSource().getServer().getPlayerNames(), b))
+                                .then(argument("quantidade", IntegerArgumentType.integer(1, 64)).executes(c -> {
+                                    String nick = StringArgumentType.getString(c, "nick");
+                                    int q = IntegerArgumentType.getInteger(c, "quantidade");
+                                    ServerPlayerEntity p = c.getSource().getServer().getPlayerManager().getPlayer(nick);
+                                    if (p != null) entregarAmuleto(p, q);
+                                    else { Dados.amuletosPendentes.merge(nick.toLowerCase(Locale.ROOT), q, Integer::sum); Dados.salvarPendentes(); }
+                                    Dados.log("DAR " + q + " amulet coin(s) para " + nick + (p == null ? " (entrega quando entrar)" : ""));
+                                    c.getSource().sendFeedback(() -> Text.literal("§a" + q + " Amulet Coin(s) para " + nick + (p == null ? " (entrega quando entrar)" : "")), true);
+                                    return 1;
+                                }))))));
+
         LOGGER.info("IndigoCoins carregado: {} coins registradas.", Dados.moedas.size());
+    }
+
+    static void entregarAmuleto(ServerPlayerEntity p, int q) {
+        Amuleto.dar(p, q);
+        p.sendMessage(Text.literal("§6Você recebeu §f" + q + "§6 Amulet Coin(s)! Clique com o botão direito para ativar (1 hora cada)."));
+    }
+
+    /** Compra Amulet Coins com o saldo: até "pedido", limitado pelo que o saldo paga. */
+    private static int comprarPorSaldo(ServerPlayerEntity p, int pedido, boolean amuleto) {
+        long preco = Dados.config.precoAmuleto;
+        if (preco <= 0) { p.sendMessage(Text.literal("§cA venda de Amulet Coin está desativada.")); return 0; }
+        BigInteger saldo = Economia.saldo(p);
+        if (saldo == null) { p.sendMessage(Text.literal("§cCobbleDollars indisponível, tente de novo.")); return 0; }
+        int qtd = (int) Math.min(saldo.divide(BigInteger.valueOf(preco)).min(BigInteger.valueOf(64)).longValue(), pedido);
+        if (qtd <= 0) {
+            p.sendMessage(Text.literal("§cA Amulet Coin custa " + Economia.fmt(preco) + " CobbleDollars e você tem " + Economia.fmt(saldo.longValue()) + "."));
+            return 0;
+        }
+        BigInteger total = BigInteger.valueOf(preco).multiply(BigInteger.valueOf(qtd));
+        if (!Economia.definir(p, saldo.subtract(total))) { p.sendMessage(Text.literal("§cFalha no pagamento.")); return 0; }
+        Amuleto.dar(p, qtd);
+        Dados.log("COMPRA(NPC) " + p.getGameProfile().getName() + " " + qtd + " amulet coin(s) por " + total);
+        p.sendMessage(Text.literal("§aVocê comprou §f" + qtd + "§a Amulet Coin" + (qtd > 1 ? "s" : "") + " por §f" + Economia.fmt(total.longValue())
+                + "§a CobbleDollars. Clique com o botão direito para ativar." + (qtd < pedido ? " §7(seu saldo só dava para " + qtd + ")" : "")));
+        return qtd;
     }
 
     static void entregar(ServerPlayerEntity p, int q) {

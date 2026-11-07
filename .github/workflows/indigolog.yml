@@ -43,7 +43,9 @@ jobs:
         run: gradle build --no-daemon
       - name: Compilar IndigoCoins
         working-directory: server-mods/indigocoins
-        run: gradle build --no-daemon
+        run: |
+          gradle build --no-daemon 2>&1 | tee build.log
+          grep -iE "cannot find|not find|unable to locate" build.log && exit 1 || true
       - name: Compilar legendlimit 1.2.1 (limites por captura + barril sem drop)
         working-directory: server-mods/legendlimit-patch
         run: |
