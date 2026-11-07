@@ -46,7 +46,10 @@ public final class TagsConfig {
         }
     }
 
-    static final List<String> AGRO_COLHEITA = List.of("#cobblemon:berries", "#cobblemon:apricorns", "#cobblemon:mints", "cobblemon:medicinal_leek");
+    /** Método (e não constante): é usado durante a criação do "instance" estático, antes das constantes existirem. */
+    static List<String> agroColheita() {
+        return new ArrayList<>(List.of("#cobblemon:berries", "#cobblemon:apricorns", "#cobblemon:mints", "cobblemon:medicinal_leek"));
+    }
 
     public static final class Fundacao {
         /** Preço em CobbleDollars para fundar uma guilda com /guilda fundar. 0 = só a staff cria (/guildaadmin criar). */
@@ -87,7 +90,7 @@ public final class TagsConfig {
         Categoria agro = new Categoria("Agricultura", "plantio",
                 "#cobblemon:berries", "#cobblemon:apricorn_sprouts", "#cobblemon:mint_seeds", "cobblemon:medicinal_leek");
         agro.itensCraft = new ArrayList<>(List.of("#cobblemon:mints"));
-        agro.blocosColheita = new ArrayList<>(AGRO_COLHEITA);
+        agro.blocosColheita = agroColheita();
         m.put("frutas", agro);
         m.put("itens_de_segurar", new Categoria("Itens de Segurar", "craft",
                 "#cobblemon:held/is_held_item"));
@@ -117,7 +120,7 @@ public final class TagsConfig {
                 f.nome = "Agricultura";
                 for (String it : List.of("#cobblemon:mint_seeds", "cobblemon:medicinal_leek")) if (!f.itens.contains(it)) f.itens.add(it);
                 f.itensCraft = new ArrayList<>(List.of("#cobblemon:mints"));
-                f.blocosColheita = new ArrayList<>(AGRO_COLHEITA);
+                f.blocosColheita = agroColheita();
             }
             save();
         } catch (Exception e) {

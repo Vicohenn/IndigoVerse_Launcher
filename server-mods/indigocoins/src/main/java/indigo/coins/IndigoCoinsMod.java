@@ -126,6 +126,11 @@ public final class IndigoCoinsMod implements ModInitializer {
                             .executes(c -> comprarRaspadinha(c, 1))
                             .then(argument("quantidade", IntegerArgumentType.integer(1, 64))
                                     .executes(c -> comprarRaspadinha(c, IntegerArgumentType.getInteger(c, "quantidade")))))
+                    .then(literal("npccomprar").requires(s -> s.hasPermissionLevel(Dados.config.permissaoConferir))
+                            .then(argument("jogador", EntityArgumentType.player())
+                                    .executes(c -> npcComprar(EntityArgumentType.getPlayer(c, "jogador"), Integer.MAX_VALUE))
+                                    .then(argument("quantidade", IntegerArgumentType.integer(1, 640))
+                                            .executes(c -> npcComprar(EntityArgumentType.getPlayer(c, "jogador"), IntegerArgumentType.getInteger(c, "quantidade"))))))
                     .then(literal("conferir").requires(s -> s.hasPermissionLevel(Dados.config.permissaoConferir))
                             .then(argument("jogador", EntityArgumentType.player())
                                     .executes(c -> Raspadinha.conferir(c.getSource().getServer(), EntityArgumentType.getPlayer(c, "jogador")))))
@@ -261,6 +266,30 @@ public final class IndigoCoinsMod implements ModInitializer {
                 + "§7 ou assim que alguém ganhar. Bilhetes conferidos nesta rodada: §f" + r.bilhetesLidos
                 + "\n§7Compre: " + preco + "§7 • confira com o §fSr. Fujiro Nakombi§7."), false);
         return 1;
+    }
+
+    /**
+     * Botão do NPC: compra raspadinhas para o jogador até onde o saldo dele dá.
+     * Sem quantidade = o máximo possível (limitado a 640 por clique); com quantidade = até aquele número.
+     */
+    private static int npcComprar(ServerPlayerEntity p, int pedido) {
+        long preco = Dados.config.precoRaspadinha;
+        if (preco <= 0) { p.sendMessage(Text.literal("§cA venda de raspadinhas está desativada.")); return 0; }
+        BigInteger saldo = Economia.saldo(p);
+        if (saldo == null) { p.sendMessage(Text.literal("§cCobbleDollars indisponível, tente de novo.")); return 0; }
+        long cabe = saldo.divide(BigInteger.valueOf(preco)).min(BigInteger.valueOf(640)).longValue();
+        int qtd = (int) Math.min(cabe, pedido);
+        if (qtd <= 0) {
+            p.sendMessage(Text.literal("§cCada raspadinha custa " + Economia.fmt(preco) + " CobbleDollars e você tem " + Economia.fmt(saldo.longValue()) + "."));
+            return 0;
+        }
+        BigInteger total = BigInteger.valueOf(preco).multiply(BigInteger.valueOf(qtd));
+        if (!Economia.definir(p, saldo.subtract(total))) { p.sendMessage(Text.literal("§cFalha no pagamento.")); return 0; }
+        Raspadinha.dar(p, qtd);
+        Dados.log("COMPRA(NPC) " + p.getGameProfile().getName() + " " + qtd + " raspadinha(s) por " + total);
+        p.sendMessage(Text.literal("§aVocê comprou §f" + qtd + "§a raspadinha" + (qtd > 1 ? "s" : "") + " por §f" + Economia.fmt(total.longValue())
+                + "§a CobbleDollars." + (qtd < pedido && pedido != Integer.MAX_VALUE ? " §7(seu saldo só dava para " + qtd + ")" : "")));
+        return qtd;
     }
 
     private static int comprarRaspadinha(CommandContext<ServerCommandSource> c, int qtd) throws CommandSyntaxException {
