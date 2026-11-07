@@ -76,11 +76,12 @@ public final class IndigoCoinsMod implements ModInitializer {
             return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> Amuleto.salvar());
-        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> Amuleto.removerBarra(h.player.getUuid()));
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> { Amuleto.removerBarra(h.player.getUuid()); LuckyEgg.removerBarra(h.player.getUuid()); });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Raspadinha.garantirRodada(server);
             Raspadinha.relatorio();
             RctDrops.registrar(server);
+            LuckyEgg.registrar();
         });
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> {
             String k = h.player.getGameProfile().getName().toLowerCase(Locale.ROOT);
@@ -102,7 +103,7 @@ public final class IndigoCoinsMod implements ModInitializer {
                     return true;
                 });
             }
-            if (ticks % 20 == 0) Amuleto.tick(server);
+            if (ticks % 20 == 0) { Amuleto.tick(server); LuckyEgg.tick(server); }
             if (++ticks % 1200 == 0) {
                 Raspadinha.garantirRodada(server);   // confere as 24 h a cada minuto
                 Amuleto.salvarSeMudou();
@@ -209,6 +210,33 @@ public final class IndigoCoinsMod implements ModInitializer {
                                     return 1;
                                 }))))));
 
+        CommandRegistrationCallback.EVENT.register((d, reg, env) -> d.register(literal("luckyegg")
+                .executes(c -> {
+                    ServerPlayerEntity p = c.getSource().getPlayerOrThrow();
+                    List<String> l = LuckyEgg.daEquipe(p);
+                    String msg = l.isEmpty()
+                            ? "§7Nenhum Pokémon da sua equipe está segurando Lucky Egg. Ele custa " + Economia.fmt(Dados.config.precoLuckyEgg)
+                              + " CobbleDollars no Sr. Fujiro Nakombi e quebra depois de " + Economia.fmt(LuckyEgg.limite()) + " de XP."
+                            : "§a🥚 Lucky Eggs da sua equipe:\n" + String.join("\n", l);
+                    c.getSource().sendFeedback(() -> Text.literal(msg), false);
+                    return l.size();
+                })
+                .then(literal("npccomprar").requires(x -> x.hasPermissionLevel(Dados.config.permissaoConferir))
+                        .then(argument("jogador", EntityArgumentType.player())
+                                .executes(c -> comprarLuckyEgg(EntityArgumentType.getPlayer(c, "jogador"), 1))
+                                .then(argument("quantidade", IntegerArgumentType.integer(1, 64))
+                                        .executes(c -> comprarLuckyEgg(EntityArgumentType.getPlayer(c, "jogador"), IntegerArgumentType.getInteger(c, "quantidade"))))))
+                .then(literal("dar").requires(x -> x.hasPermissionLevel(2))
+                        .then(argument("jogador", EntityArgumentType.player())
+                                .then(argument("quantidade", IntegerArgumentType.integer(1, 64)).executes(c -> {
+                                    ServerPlayerEntity p = EntityArgumentType.getPlayer(c, "jogador");
+                                    int q = LuckyEgg.dar(p, IntegerArgumentType.getInteger(c, "quantidade"));
+                                    Dados.log("DAR " + q + " lucky egg(s) para " + p.getGameProfile().getName());
+                                    p.sendMessage(Text.literal("§aVocê recebeu §f" + q + "§a Lucky Egg(s). Dê para um Pokémon segurar."));
+                                    c.getSource().sendFeedback(() -> Text.literal("§a" + q + " Lucky Egg(s) para " + p.getGameProfile().getName()), true);
+                                    return q;
+                                }))))));
+
         LOGGER.info("IndigoCoins carregado: {} coins registradas.", Dados.moedas.size());
     }
 
@@ -234,6 +262,27 @@ public final class IndigoCoinsMod implements ModInitializer {
         Dados.log("COMPRA(NPC) " + p.getGameProfile().getName() + " " + qtd + " amulet coin(s) por " + total);
         p.sendMessage(Text.literal("§aVocê comprou §f" + qtd + "§a Amulet Coin" + (qtd > 1 ? "s" : "") + " por §f" + Economia.fmt(total.longValue())
                 + "§a CobbleDollars. Clique com o botão direito para ativar." + (qtd < pedido ? " §7(seu saldo só dava para " + qtd + ")" : "")));
+        return qtd;
+    }
+
+    /** Compra Lucky Eggs com o saldo: até "pedido", limitado pelo que o saldo paga. */
+    private static int comprarLuckyEgg(ServerPlayerEntity p, int pedido) {
+        long preco = Dados.config.precoLuckyEgg;
+        if (preco <= 0) { p.sendMessage(Text.literal("§cA venda de Lucky Egg está desativada.")); return 0; }
+        BigInteger saldo = Economia.saldo(p);
+        if (saldo == null) { p.sendMessage(Text.literal("§cCobbleDollars indisponível, tente de novo.")); return 0; }
+        int qtd = (int) Math.min(saldo.divide(BigInteger.valueOf(preco)).min(BigInteger.valueOf(64)).longValue(), pedido);
+        if (qtd <= 0) {
+            p.sendMessage(Text.literal("§cO Lucky Egg custa " + Economia.fmt(preco) + " CobbleDollars e você tem " + Economia.fmt(saldo.longValue()) + "."));
+            return 0;
+        }
+        BigInteger total = BigInteger.valueOf(preco).multiply(BigInteger.valueOf(qtd));
+        if (!Economia.definir(p, saldo.subtract(total))) { p.sendMessage(Text.literal("§cFalha no pagamento.")); return 0; }
+        LuckyEgg.dar(p, qtd);
+        Dados.log("COMPRA(NPC) " + p.getGameProfile().getName() + " " + qtd + " lucky egg(s) por " + total);
+        p.sendMessage(Text.literal("§aVocê comprou §f" + qtd + "§a Lucky Egg" + (qtd > 1 ? "s" : "") + " por §f" + Economia.fmt(total.longValue())
+                + "§a CobbleDollars. Ele quebra depois de " + Economia.fmt(LuckyEgg.limite()) + " de XP; acompanhe com §e/luckyegg§a."
+                + (qtd < pedido ? " §7(seu saldo só dava para " + qtd + ")" : "")));
         return qtd;
     }
 

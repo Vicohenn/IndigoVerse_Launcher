@@ -3,7 +3,7 @@
   "id": "indigocoins",
   "version": "${version}",
   "name": "IndigoCoins",
-  "description": "Indigo Coins presas ao dono (ID de 12 dígitos), venda entre jogadores por CobbleDollars, loja de coins, raspadinha com sorteio e drop raro de trainers do RCT. Amulet Coin: dobra o dinheiro de batalhas por 1 hora.",
+  "description": "Indigo Coins presas ao dono (ID de 12 dígitos), venda entre jogadores por CobbleDollars, loja de coins, raspadinha com sorteio e drop raro de trainers do RCT. Amulet Coin: dobra o dinheiro de batalhas por 1 hora. Lucky Egg quebra depois de 250k de XP.",
   "authors": [
     "IndigoVerse"
   ],

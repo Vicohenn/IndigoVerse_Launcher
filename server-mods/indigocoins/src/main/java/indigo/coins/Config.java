@@ -60,6 +60,19 @@ public final class Config {
     /** Mostra o tempo restante numa barra no topo da tela. */
     public boolean amuletoContadorNaTela = true;
 
+    // ---------- Lucky Egg ----------
+    /** Liga o desgaste: o Lucky Egg segurado por um Pokémon quebra depois de luckyEggLimiteXp de XP. */
+    public boolean luckyEggAtivo = true;
+    public String luckyEggItem = "cobblemon:lucky_egg";
+    public long luckyEggLimiteXp = 250000;
+    /** Só XP de batalha gasta o ovo (doces de XP e comandos não gastam). */
+    public boolean luckyEggSoBatalha = true;
+    /** Preço por /luckyegg npccomprar (botão do NPC). */
+    public long precoLuckyEgg = 100000;
+    /** Mostra o progresso do ovo numa barra no topo da tela por alguns segundos depois de cada ganho de XP. */
+    public boolean luckyEggBarraNaTela = true;
+    public int luckyEggSegundosNaTela = 10;
+
     // ---------- relatório (testes) ----------
     /** Planilha (CSV, abre no Excel) com cada rodada. Caminho relativo à pasta do servidor. */
     public boolean relatorioAtivo = true;
