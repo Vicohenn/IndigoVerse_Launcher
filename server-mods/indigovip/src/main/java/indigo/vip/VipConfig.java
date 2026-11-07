@@ -89,6 +89,18 @@ public final class VipConfig {
     public int anunciarIntervaloMinutos = 30;
     public String formatoAnuncio = "&8[&9Anúncio&8] {prefixo}&f{nick}&7: &f{mensagem}";
     public int tamanhoMaximoTexto = 120;
+    // ---------- benefícios de conforto e visual (nível mínimo de cada um) ----------
+    public String nivelHatEc = "treinador";
+    public String nivelWorkbench = "elite_four";
+    public String nivelCoresChat = "gym_leader";
+    public String nivelParticulas = "gym_leader";
+    public String nivelSeguidor = "elite_four";
+    /** Vagas de anúncio no GTS: quem não é apoiador usa este número; os níveis usam o mapa abaixo. */
+    public int gtsVagasSemApoio = 3;
+    public Map<String, Integer> gtsVagasPorNivel = null;
+    /** Taxa do GTS para quem vende, por nível (os outros pagam a taxa da config do GTS). */
+    public Map<String, Double> gtsTaxaPorNivel = null;
+
     /** Cargos de staff disponíveis. */
     public List<Cargo> cargosStaff = new ArrayList<>();
     /** Nick -> id do cargo de staff. Use /cargo definir <nick> <cargo>. */
@@ -124,6 +136,12 @@ public final class VipConfig {
         if (instance.discordCanalFila == null) instance.discordCanalFila = "";
         if (instance.cargosStaff == null || instance.cargosStaff.isEmpty()) instance.cargosStaff = cargosPadrao();
         if (instance.staff == null) instance.staff = new LinkedHashMap<>();
+        if (instance.gtsVagasPorNivel == null) {
+            instance.gtsVagasPorNivel = new LinkedHashMap<>(Map.of("treinador", 4, "gym_leader", 5, "elite_four", 7, "indigo_legend", 9));
+        }
+        if (instance.gtsTaxaPorNivel == null) {
+            instance.gtsTaxaPorNivel = new LinkedHashMap<>(Map.of("indigo_legend", 0.05));
+        }
         for (Nivel n : instance.niveis) if (n.vagasExtras == null) n.vagasExtras = vagasPadrao(n.id);
         save();   // grava campos novos no arquivo
     }

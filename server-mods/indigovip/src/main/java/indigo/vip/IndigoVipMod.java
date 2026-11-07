@@ -45,6 +45,7 @@ public final class IndigoVipMod implements ModInitializer {
     public void onInitialize() {
         VipConfig.load();
         Apoiadores.load();
+        Conforto.iniciar();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Fila.criarPastas();
@@ -52,11 +53,13 @@ public final class IndigoVipMod implements ModInitializer {
             for (String nick : Apoiadores.todos().values().stream().map(r -> r.nick).toList()) Tags.aplicar(server, nick);
             Entrega.verificarExpirados(server);
             DiscordFila.iniciar(server);
+            Conforto.aoIniciarServidor(server);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> DiscordFila.parar());
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             ticks++;
+            Conforto.tick(server);
             if (ticks % 100 == 0) Fila.processar(server);                 // a cada 5 s
             if (ticks % 1200 == 0) Entrega.verificarExpirados(server);    // a cada 1 min
         });
@@ -102,6 +105,8 @@ public final class IndigoVipMod implements ModInitializer {
                         }))));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> Beneficios.registrar(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> Conforto.registrar(dispatcher));
+        ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> Conforto.removerSeguidor(h.player));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
                 literal("cargo").requires(s -> s.hasPermissionLevel(3))

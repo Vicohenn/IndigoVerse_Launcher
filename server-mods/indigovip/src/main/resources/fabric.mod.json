@@ -21,6 +21,7 @@
     "fabric-api": "*"
   },
   "mixins": [
-    "indigovip.mixins.json"
+    "indigovip.mixins.json",
+    "indigovip.gts.mixins.json"
   ]
 }
