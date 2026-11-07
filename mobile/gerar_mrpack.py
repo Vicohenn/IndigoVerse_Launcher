@@ -119,7 +119,7 @@ def servers_dat(nome, ip):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--endereco', default='ultra-08.bedhosting.com.br:25553')
+    ap.add_argument('--endereco', default='shrimp-cosmos.tun.ply.gg')
     ap.add_argument('--versao', default='1.0.3')
     a = ap.parse_args()
 
