@@ -69,6 +69,7 @@ public final class IndigoSpawnMod implements ModInitializer {
     public void onInitialize() {
         SpawnConfig.load();
         Extras.carregarKit();
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> WarpStone.registrar());
 
         // ---------- spawn exato ----------
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

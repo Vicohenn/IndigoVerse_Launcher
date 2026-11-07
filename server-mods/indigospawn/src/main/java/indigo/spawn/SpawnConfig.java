@@ -67,6 +67,14 @@ public final class SpawnConfig {
     /** Máximo de Waystones por chunk (0 = sem limite). OPs ignoram. */
     public Integer waystonesPorChunk = null;
 
+    /** Desgaste da Warp Stone: usos totais; ao chegar no fim da vida útil, cada uso tem uma chance de quebrar. */
+    public Boolean warpStoneDesgaste = null;
+    public int warpStoneUsosMax = 10000;
+    /** A partir de quanto de vida restante (0.25 = 25%) começa o risco de quebrar. */
+    public double warpStoneVidaRisco = 0.25;
+    /** Chance de quebrar a cada uso dentro da zona de risco (0.05 = 5%). */
+    public double warpStoneChanceQuebra = 0.05;
+
     public static SpawnConfig get() { return instance; }
 
     private static Path arquivo() { return FabricLoader.getInstance().getConfigDir().resolve("indigospawn.json"); }
@@ -90,6 +98,7 @@ public final class SpawnConfig {
         boolean novo = false;
         if (instance.kitInicial == null) { instance.kitInicial = new ArrayList<>(List.of(new ItemKit("waystones:warp_stone", 1))); novo = true; }
         if (instance.waystonesPorChunk == null) { instance.waystonesPorChunk = 1; novo = true; }
+        if (instance.warpStoneDesgaste == null) { instance.warpStoneDesgaste = true; novo = true; }
         if (novo) save();
     }
 

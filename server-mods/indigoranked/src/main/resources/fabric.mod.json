@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "indigoranked",
+  "version": "${version}",
+  "name": "IndigoRanked",
+  "description": "Ranqueada da Arena Central: fila por pontos, partidas MD1, séries de promoção MD3, regulamentos por temporada, ranks Poké Ball a Campeão Indigo e proteção contra manipulação.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.ranked.IndigoRankedMod"] },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
