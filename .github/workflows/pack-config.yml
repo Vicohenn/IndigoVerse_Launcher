@@ -2,7 +2,7 @@ name: Configs extras do pack (minimapa etc.)
 on:
   workflow_dispatch:
   push:
-    paths: ['pack-config/**', 'pack-remover.txt', 'pack-endereco.txt', '.github/workflows/pack-config.yml']
+    paths: ['pack-config/**', 'pack-remover.txt', 'pack-adicionar.json', 'pack-endereco.txt', '.github/workflows/pack-config.yml']
 permissions:
   contents: write
 jobs:
@@ -42,6 +42,12 @@ jobs:
           antes = len(srv['modules'])
           srv['modules'] = [m for m in srv['modules'] if m['id'] not in remover]
           print('removidos do download automático:', antes - len(srv['modules']))
+          # devolve ao download módulos que já estão no release (pack-adicionar.json: lista de módulos)
+          if os.path.exists('pack-adicionar.json'):
+              for m in json.load(open('pack-adicionar.json', encoding='utf-8')):
+                  if m['id'] not in remover and not any(x['id'] == m['id'] for x in srv['modules']):
+                      srv['modules'].append(m)
+                      print('devolvido ao download:', m['id'])
           # endereço do servidor (playit.gg etc.)
           if os.path.exists('pack-endereco.txt'):
               end = open('pack-endereco.txt', encoding='utf-8').read().strip()
