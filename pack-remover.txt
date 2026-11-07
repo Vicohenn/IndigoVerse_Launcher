@@ -9,3 +9,6 @@ indigoverse:simpletms:2.3.3@jar
 mods/!DoctorsDOUBLE-BATTLE-EVERYTHING.zip
 # Removido do modpack (Planejamento Estrutural: mineração por Pokémon) (2026-11-07)
 indigoverse:cobblemon-environment-interactions:3.1.0@jar
+
+# Removido do servidor e do launcher (fornalhas só pela loja do NPC) (2026-11-07)
+indigoverse:ironfurnaces:1.21.1-1.0.0@jar
