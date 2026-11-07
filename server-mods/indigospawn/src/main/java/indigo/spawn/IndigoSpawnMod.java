@@ -68,12 +68,15 @@ public final class IndigoSpawnMod implements ModInitializer {
     @Override
     public void onInitialize() {
         SpawnConfig.load();
+        Extras.carregarKit();
 
         // ---------- spawn exato ----------
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity p = handler.player;
+            boolean primeiro = p.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0;
+            if (primeiro) Extras.agendarKit(p, tick);
             if (!SpawnConfig.get().teleportarNoPrimeiroLogin) return;
-            if (p.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
+            if (primeiro) {
                 // duas vezes: logo depois de entrar e de novo após o login (EasyAuth pode mexer na posição)
                 agenda.add(new Agendado(tick + 20, p.getUuid()));
                 agenda.add(new Agendado(tick + 80, p.getUuid()));
@@ -89,6 +92,7 @@ public final class IndigoSpawnMod implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tick++;
+            if (tick % 20 == 0) Extras.entregarPendentes(server, tick);
             if (tick % 20 == 0 && !vigiados.isEmpty()) {
                 vigiados.entrySet().removeIf(e -> {
                     ServerPlayerEntity p = server.getPlayerManager().getPlayer(e.getKey());
@@ -115,6 +119,10 @@ public final class IndigoSpawnMod implements ModInitializer {
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+            if (!world.isClient && player instanceof ServerPlayerEntity sp && world instanceof ServerWorld sw) {
+                ActionResult r = Extras.limitarWaystone(sp, sw, hand, hit);
+                if (r != ActionResult.PASS) return r;
+            }
             if (world.isClient || Protecao.liberado(player)) return ActionResult.PASS;
             BlockPos pos = hit.getBlockPos();
             BlockPos colocar = pos.offset(hit.getSide());

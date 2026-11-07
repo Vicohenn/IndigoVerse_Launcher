@@ -20,6 +20,8 @@ public final class Apoiadores {
         /** Momento em que expira (epoch ms). 0 = permanente. */
         public long expiraEm;
         public long desde;
+        /** Mensagem de entrada personalizada (Indigo Legend). */
+        public String mensagemEntrada;
     }
 
     private static Map<String, Registro> dados = new LinkedHashMap<>();

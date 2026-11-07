@@ -65,6 +65,7 @@ public final class IndigoVipMod implements ModInitializer {
             ServerPlayerEntity p = handler.player;
             String nick = p.getGameProfile().getName();
             Tags.aplicar(server, nick);
+            Beneficios.aoEntrar(server, p);
             Apoiadores.Registro r = Apoiadores.de(nick);
             if (Apoiadores.ativo(r) && r.expiraEm != 0 && r.expiraEm - System.currentTimeMillis() < 3 * Entrega.DIA) {
                 p.sendMessage(Text.literal("§eSeu apoio termina " + Entrega.validade(r.expiraEm) + ". Obrigado por apoiar o IndigoVerse!"));
@@ -99,6 +100,8 @@ public final class IndigoVipMod implements ModInitializer {
                             c.getSource().sendFeedback(() -> Text.literal("§aIndigoVIP recarregado."), true);
                             return 1;
                         }))));
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> Beneficios.registrar(dispatcher));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
                 literal("cargo").requires(s -> s.hasPermissionLevel(3))

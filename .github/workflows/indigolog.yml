@@ -25,7 +25,10 @@ jobs:
         run: gradle build --no-daemon 2>&1 | tee build.log
       - name: Compilar IndigoVIP
         working-directory: server-mods/indigovip
-        run: gradle build --no-daemon
+        run: |
+          gradle build --no-daemon 2>&1 | tee build.log
+          grep -iE "cannot find|not find|unable to locate" build.log && exit 1 || true
+          unzip -p build/libs/indigovip-*[0-9].jar '*refmap.json'
       - name: Compilar IndigoSpawn
         working-directory: server-mods/indigospawn
         run: gradle build --no-daemon 2>&1 | tee build.log

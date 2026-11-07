@@ -49,6 +49,16 @@ public final class GuildTagsMod implements ModInitializer {
             return ActionResult.PASS;
         });
 
+        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
+            if (player instanceof ServerPlayerEntity sp && world instanceof ServerWorld sw) return Restricoes.aoUsarItem(sp, sw, hand);
+            return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
+        });
+
+        net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) ->
+                !(player instanceof ServerPlayerEntity sp) || Restricoes.podeQuebrar(sp, state));
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> Fundacao.registrar(dispatcher));
+
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
                 literal("guildatag")
                         .executes(GuildTagsMod::listar)

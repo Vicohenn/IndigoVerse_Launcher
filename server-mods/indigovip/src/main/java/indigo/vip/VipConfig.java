@@ -32,6 +32,8 @@ public final class VipConfig {
         public List<String> comandosAoAtivar = new ArrayList<>();
         /** Comandos rodados quando o nível expira ou é removido. */
         public List<String> comandosAoExpirar = new ArrayList<>();
+        /** Fila prioritária: quantas vagas além do limite do servidor este nível pode usar. */
+        public Integer vagasExtras;
 
         Nivel() {}
         Nivel(String id, String nome, int ordem, String prefixo, String cor) {
@@ -77,6 +79,16 @@ public final class VipConfig {
     public String mensagemAnuncio = "&6✦ &f{nick} &7agora é apoiador {prefixo}&7! Obrigado por ajudar o IndigoVerse!";
     public List<Nivel> niveis = new ArrayList<>();
     public Map<String, Produto> produtos = new LinkedHashMap<>();
+    /** Nível mínimo para ter mensagem de entrada personalizada (/entrada). */
+    public String nivelMensagemEntrada = "indigo_legend";
+    public String entradaPadrao = "&7chegou ao IndigoVerse!";
+    /** {prefixo} {nick} {mensagem} */
+    public String formatoEntrada = "&9✦ {prefixo}&f{nick} &f{mensagem}";
+    /** Nível mínimo para usar /anunciar. */
+    public String nivelAnunciar = "indigo_legend";
+    public int anunciarIntervaloMinutos = 30;
+    public String formatoAnuncio = "&8[&9Anúncio&8] {prefixo}&f{nick}&7: &f{mensagem}";
+    public int tamanhoMaximoTexto = 120;
     /** Cargos de staff disponíveis. */
     public List<Cargo> cargosStaff = new ArrayList<>();
     /** Nick -> id do cargo de staff. Use /cargo definir <nick> <cargo>. */
@@ -112,6 +124,7 @@ public final class VipConfig {
         if (instance.discordCanalFila == null) instance.discordCanalFila = "";
         if (instance.cargosStaff == null || instance.cargosStaff.isEmpty()) instance.cargosStaff = cargosPadrao();
         if (instance.staff == null) instance.staff = new LinkedHashMap<>();
+        for (Nivel n : instance.niveis) if (n.vagasExtras == null) n.vagasExtras = vagasPadrao(n.id);
         save();   // grava campos novos no arquivo
     }
 
@@ -142,6 +155,17 @@ public final class VipConfig {
     public Cargo cargoDe(String nick) {
         for (Map.Entry<String, String> e : staff.entrySet()) if (e.getKey().equalsIgnoreCase(nick)) return cargo(e.getValue());
         return null;
+    }
+
+    /** Fila prioritária: quanto maior o nível, mais vagas extras (Indigo Legend praticamente sempre entra). */
+    private static int vagasPadrao(String id) {
+        return switch (id == null ? "" : id) {
+            case "treinador" -> 2;
+            case "gym_leader" -> 4;
+            case "elite_four" -> 6;
+            case "indigo_legend" -> 50;
+            default -> 0;
+        };
     }
 
     private static List<Cargo> cargosPadrao() {

@@ -54,6 +54,19 @@ public final class SpawnConfig {
     /** Blocos que NÃO podem ser usados (clique direito) dentro das áreas, ex.: "minecraft:chest". Vazio = tudo pode ser usado. */
     public List<String> blocosSemUsoNaArea = new ArrayList<>();
 
+    public static final class ItemKit {
+        public String item;
+        public int quantidade = 1;
+        public ItemKit() {}
+        ItemKit(String item, int q) { this.item = item; this.quantidade = q; }
+    }
+
+    /** Itens entregues uma única vez, no primeiro login (depois do login do EasyAuth). */
+    public List<ItemKit> kitInicial = null;
+    public String mensagemKit = "&aBem-vindo ao IndigoVerse! Você recebeu seu kit inicial.";
+    /** Máximo de Waystones por chunk (0 = sem limite). OPs ignoram. */
+    public Integer waystonesPorChunk = null;
+
     public static SpawnConfig get() { return instance; }
 
     private static Path arquivo() { return FabricLoader.getInstance().getConfigDir().resolve("indigospawn.json"); }
@@ -74,6 +87,10 @@ public final class SpawnConfig {
         }
         if (instance.areasProtegidas == null) instance.areasProtegidas = new ArrayList<>();
         if (instance.blocosSemUsoNaArea == null) instance.blocosSemUsoNaArea = new ArrayList<>();
+        boolean novo = false;
+        if (instance.kitInicial == null) { instance.kitInicial = new ArrayList<>(List.of(new ItemKit("waystones:warp_stone", 1))); novo = true; }
+        if (instance.waystonesPorChunk == null) { instance.waystonesPorChunk = 1; novo = true; }
+        if (novo) save();
     }
 
     public static void save() {

@@ -33,6 +33,10 @@ public final class TagsConfig {
         public String tipo;
         /** Itens da categoria: "cobblemon:poke_ball", "#cobblemon:poke_balls" (tag) ou "cobblecuisine:*_shake". */
         public List<String> itens;
+        /** Itens extras que só a guilda da categoria pode fabricar (ex.: mentas de natureza na Agricultura). */
+        public List<String> itensCraft;
+        /** Blocos que só a guilda da categoria pode colher/quebrar (ex.: arbustos de berry, apricorns). Aceita #tags de bloco. */
+        public List<String> blocosColheita;
 
         public Categoria() {}
         Categoria(String nome, String tipo, String... itens) {
@@ -41,6 +45,19 @@ public final class TagsConfig {
             this.itens = new ArrayList<>(List.of(itens));
         }
     }
+
+    static final List<String> AGRO_COLHEITA = List.of("#cobblemon:berries", "#cobblemon:apricorns", "#cobblemon:mints", "cobblemon:medicinal_leek");
+
+    public static final class Fundacao {
+        /** Preço em CobbleDollars para fundar uma guilda com /guilda fundar. 0 = só a staff cria (/guildaadmin criar). */
+        public long custo = 0;
+        /** Nível de apoio (IndigoVIP) a partir do qual há desconto. */
+        public String nivelDesconto = "elite_four";
+        /** 0.20 = 20% de desconto. */
+        public double desconto = 0.20;
+    }
+
+    public Fundacao fundacao = new Fundacao();
 
     public int maxGuildasPorCategoria = 3;
     /** Operadores (/op) não são bloqueados. */
@@ -67,8 +84,11 @@ public final class TagsConfig {
                 "cobblemon:heal_powder", "cobblemon:energy_root", "cobblemon:revival_herb"));
         m.put("vitaminas", new Categoria("Vitaminas", "craft",
                 "#cobblemon:vitamins", "cobblecuisine:*_shake"));
-        m.put("frutas", new Categoria("Frutas e Bagas", "plantio",
-                "#cobblemon:berries", "#cobblemon:apricorn_sprouts"));
+        Categoria agro = new Categoria("Agricultura", "plantio",
+                "#cobblemon:berries", "#cobblemon:apricorn_sprouts", "#cobblemon:mint_seeds", "cobblemon:medicinal_leek");
+        agro.itensCraft = new ArrayList<>(List.of("#cobblemon:mints"));
+        agro.blocosColheita = new ArrayList<>(AGRO_COLHEITA);
+        m.put("frutas", agro);
         m.put("itens_de_segurar", new Categoria("Itens de Segurar", "craft",
                 "#cobblemon:held/is_held_item"));
         m.put("tm", new Categoria("TMs", "craft",
@@ -90,6 +110,15 @@ public final class TagsConfig {
             if (instance.categorias == null || instance.categorias.isEmpty()) instance.categorias = padrao();
             if (instance.guildas == null) instance.guildas = new LinkedHashMap<>();
             for (String cat : instance.categorias.keySet()) instance.guildas.computeIfAbsent(cat, k -> new ArrayList<>());
+            if (instance.fundacao == null) instance.fundacao = new Fundacao();
+            // v1.1: a categoria "frutas" vira "Agricultura" (mentas, alho-poró medicinal e colheita)
+            Categoria f = instance.categorias.get("frutas");
+            if (f != null && f.blocosColheita == null) {
+                f.nome = "Agricultura";
+                for (String it : List.of("#cobblemon:mint_seeds", "cobblemon:medicinal_leek")) if (!f.itens.contains(it)) f.itens.add(it);
+                f.itensCraft = new ArrayList<>(List.of("#cobblemon:mints"));
+                f.blocosColheita = new ArrayList<>(AGRO_COLHEITA);
+            }
             save();
         } catch (Exception e) {
             GuildTagsMod.LOGGER.error("Erro lendo config/guildtags.json", e);

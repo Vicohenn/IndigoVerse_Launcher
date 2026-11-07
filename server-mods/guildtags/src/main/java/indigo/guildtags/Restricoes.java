@@ -73,6 +73,13 @@ public final class Restricoes {
             return ActionResult.FAIL;
         }
 
+        // Colheita: arbustos de berry, apricorns, mentas, alho-poró medicinal
+        String colheita = Itens.categoriaDoBloco(world.getBlockState(hit.getBlockPos()));
+        if (colheita != null && !Guildas.podeUsar(player, colheita)) {
+            avisar(player, "Apenas guildas com a tag §e" + nome(colheita) + "§c podem colher isto.");
+            return ActionResult.FAIL;
+        }
+
         // Plantio de frutas e bagas
         String plantio = Itens.categoriaDe(st, "plantio");
         if (plantio != null && ehSolo(world, hit.getBlockPos()) && !Guildas.podeUsar(player, plantio)) {
@@ -115,9 +122,39 @@ public final class Restricoes {
         return minha != null && minha.equalsIgnoreCase(doDono);
     }
 
+    private static final net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> BERRY_SOIL =
+            net.minecraft.registry.tag.TagKey.of(net.minecraft.registry.RegistryKeys.BLOCK, net.minecraft.util.Identifier.of("cobblemon", "berry_soil"));
+    private static final net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> LEEK_PLANTAVEL =
+            net.minecraft.registry.tag.TagKey.of(net.minecraft.registry.RegistryKeys.BLOCK, net.minecraft.util.Identifier.of("cobblemon", "medicinal_leek_plantable"));
+
     private static boolean ehSolo(ServerWorld world, BlockPos pos) {
         var state = world.getBlockState(pos);
-        return state.isIn(BlockTags.DIRT) || state.isOf(net.minecraft.block.Blocks.FARMLAND) || state.isIn(BlockTags.SAND);
+        return state.isIn(BlockTags.DIRT) || state.isOf(net.minecraft.block.Blocks.FARMLAND) || state.isIn(BlockTags.SAND)
+                || state.isIn(BERRY_SOIL) || state.isIn(LEEK_PLANTAVEL);
+    }
+
+    /** Clique direito com o item no ar: o alho-poró medicinal é plantado na água (como a vitória-régia). */
+    public static net.minecraft.util.TypedActionResult<ItemStack> aoUsarItem(ServerPlayerEntity player, ServerWorld world, Hand hand) {
+        ItemStack st = player.getStackInHand(hand);
+        String plantio = Itens.categoriaDe(st, "plantio");
+        if (plantio == null || Guildas.podeUsar(player, plantio)) return net.minecraft.util.TypedActionResult.pass(st);
+        var hr = world.raycast(new net.minecraft.world.RaycastContext(player.getEyePos(),
+                player.getEyePos().add(player.getRotationVec(1f).multiply(5)),
+                net.minecraft.world.RaycastContext.ShapeType.OUTLINE, net.minecraft.world.RaycastContext.FluidHandling.SOURCE_ONLY, player));
+        if (hr instanceof BlockHitResult bh && hr.getType() == net.minecraft.util.hit.HitResult.Type.BLOCK
+                && (world.getFluidState(bh.getBlockPos()).isIn(net.minecraft.registry.tag.FluidTags.WATER) || ehSolo(world, bh.getBlockPos()))) {
+            avisar(player, "Apenas guildas com a tag §e" + nome(plantio) + "§c podem plantar " + st.getName().getString() + ".");
+            return net.minecraft.util.TypedActionResult.fail(st);
+        }
+        return net.minecraft.util.TypedActionResult.pass(st);
+    }
+
+    /** Quebrar arbustos de berry, apricorns, mentas e alho-poró: só a guilda da categoria. */
+    public static boolean podeQuebrar(ServerPlayerEntity player, net.minecraft.block.BlockState state) {
+        String cat = Itens.categoriaDoBloco(state);
+        if (cat == null || Guildas.podeUsar(player, cat)) return true;
+        avisar(player, "Apenas guildas com a tag §e" + nome(cat) + "§c podem colher isto.");
+        return false;
     }
 
     // ---------------- util ----------------
