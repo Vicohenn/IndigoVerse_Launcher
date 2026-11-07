@@ -46,7 +46,26 @@ import static net.minecraft.server.command.CommandManager.literal;
  */
 public final class IndigoCoinsMod implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("indigocoins");
-    private static int ticks;
+    private static long ticks;
+    private static final java.util.Map<java.util.UUID, Long> aguardandoLogin = new java.util.concurrent.ConcurrentHashMap<>();
+    private static java.lang.reflect.Method metodoAuth;
+    private static boolean semEasyAuth;
+
+    /** EasyAuth esconde o inventário até o login; sem EasyAuth = sempre autenticado. */
+    private static boolean autenticado(ServerPlayerEntity p) {
+        if (semEasyAuth) return true;
+        try {
+            if (metodoAuth == null) {
+                for (java.lang.reflect.Method m : p.getClass().getMethods())
+                    if (m.getParameterCount() == 0 && m.getReturnType() == boolean.class && m.getName().toLowerCase().contains("isauthenticated")) { metodoAuth = m; break; }
+                if (metodoAuth == null) { semEasyAuth = true; return true; }
+            }
+            return (boolean) metodoAuth.invoke(p);
+        } catch (Exception e) {
+            semEasyAuth = true;
+            return true;
+        }
+    }
 
     @Override
     public void onInitialize() {
@@ -56,7 +75,21 @@ public final class IndigoCoinsMod implements ModInitializer {
             Raspadinha.relatorio();
             RctDrops.registrar(server);
         });
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> {
+            if (Dados.pendentes.containsKey(h.player.getGameProfile().getName().toLowerCase(Locale.ROOT)))
+                aguardandoLogin.put(h.player.getUuid(), ticks + 20L * 300);
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (ticks % 20 == 0 && !aguardandoLogin.isEmpty()) {
+                aguardandoLogin.entrySet().removeIf(e -> {
+                    ServerPlayerEntity p = server.getPlayerManager().getPlayer(e.getKey());
+                    if (p == null) return true;
+                    if (!autenticado(p) && e.getValue() > ticks) return false;   // espera o login do EasyAuth
+                    Integer q = Dados.pendentes.remove(p.getGameProfile().getName().toLowerCase(Locale.ROOT));
+                    if (q != null && q > 0) { Dados.salvarPendentes(); entregar(p, q); }
+                    return true;
+                });
+            }
             if (++ticks % 1200 == 0) Raspadinha.garantirRodada(server);   // confere as 24 h a cada minuto
         });
         CommandRegistrationCallback.EVENT.register((d, reg, env) -> {
@@ -97,13 +130,19 @@ public final class IndigoCoinsMod implements ModInitializer {
                             .then(argument("jogador", EntityArgumentType.player())
                                     .executes(c -> Raspadinha.conferir(c.getSource().getServer(), EntityArgumentType.getPlayer(c, "jogador")))))
                     .then(literal("dar").requires(s -> s.hasPermissionLevel(2))
-                            .then(argument("jogador", EntityArgumentType.player())
+                            .then(argument("nick", StringArgumentType.word())
+                                    .suggests((c, b) -> CommandSource.suggestMatching(c.getSource().getServer().getPlayerNames(), b))
                                     .then(argument("quantidade", IntegerArgumentType.integer(1, 640)).executes(c -> {
-                                        ServerPlayerEntity p = EntityArgumentType.getPlayer(c, "jogador");
+                                        String nick = StringArgumentType.getString(c, "nick");
                                         int q = IntegerArgumentType.getInteger(c, "quantidade");
-                                        Raspadinha.dar(p, q);
-                                        p.sendMessage(Text.literal("§6Você recebeu §f" + q + "§6 raspadinha(s)! Confira com o Sr. Fujiro Nakombi."));
-                                        c.getSource().sendFeedback(() -> Text.literal("§a" + q + " raspadinha(s) para " + p.getGameProfile().getName()), true);
+                                        ServerPlayerEntity p = c.getSource().getServer().getPlayerManager().getPlayer(nick);
+                                        if (p != null) entregar(p, q);
+                                        else {
+                                            Dados.pendentes.merge(nick.toLowerCase(Locale.ROOT), q, Integer::sum);
+                                            Dados.salvarPendentes();
+                                        }
+                                        Dados.log("DAR " + q + " raspadinha(s) para " + nick + (p == null ? " (entrega quando entrar)" : ""));
+                                        c.getSource().sendFeedback(() -> Text.literal("§a" + q + " raspadinha(s) para " + nick + (p == null ? " (entrega quando entrar)" : "")), true);
                                         return 1;
                                     }))))
                     .then(literal("admin").requires(s -> s.hasPermissionLevel(3))
@@ -122,6 +161,11 @@ public final class IndigoCoinsMod implements ModInitializer {
                             }))));
         });
         LOGGER.info("IndigoCoins carregado: {} coins registradas.", Dados.moedas.size());
+    }
+
+    static void entregar(ServerPlayerEntity p, int q) {
+        Raspadinha.dar(p, q);
+        p.sendMessage(Text.literal("§6Você recebeu §f" + q + "§6 raspadinha(s)! Confira com o Sr. Fujiro Nakombi."));
     }
 
     // ---------------- coins ----------------

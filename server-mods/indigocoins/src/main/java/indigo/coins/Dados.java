@@ -61,6 +61,8 @@ public final class Dados {
     static Map<String, Moeda> moedas = new LinkedHashMap<>();
     static Rodada rodada = new Rodada();
     static List<Resultado> historico = new ArrayList<>();
+    /** Raspadinhas a entregar para quem estava offline (nick em minúsculas -> quantidade). */
+    static Map<String, Integer> pendentes = new LinkedHashMap<>();
 
     private Dados() {}
 
@@ -78,6 +80,8 @@ public final class Dados {
             rodada = r != null ? r : null;
             List<Resultado> h = ler("historico.json", new TypeToken<ArrayList<Resultado>>() {}.getType());
             historico = h != null ? h : new ArrayList<>();
+            Map<String, Integer> pe = ler("raspadinhas-pendentes.json", new TypeToken<LinkedHashMap<String, Integer>>() {}.getType());
+            pendentes = pe != null ? pe : new LinkedHashMap<>();
         } catch (Exception e) {
             IndigoCoinsMod.LOGGER.error("Erro carregando dados do IndigoCoins", e);
         }
@@ -108,6 +112,7 @@ public final class Dados {
     static void salvarMoedas() { salvar("moedas.json", moedas); }
     static void salvarRodada() { salvar("sorteio.json", rodada); }
     static void salvarHistorico() { salvar("historico.json", historico); }
+    static void salvarPendentes() { salvar("raspadinhas-pendentes.json", pendentes); }
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
