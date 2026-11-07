@@ -1,7 +1,7 @@
 name: Mods do servidor (IndigoLog, Guild Tags, IndigoVIP, IndigoSpawn)
 on:
   push:
-    paths: ['server-mods/indigolog/**', 'server-mods/guildtags/**', 'server-mods/indigovip/**', 'server-mods/indigospawn/**', 'server-mods/legendlimit-patch/**', 'server-mods/indigoguard/**', 'server-mods/indigoprecos/**', 'server-mods/indigocoins/**', '.github/workflows/indigolog.yml']
+    paths: ['server-mods/indigolog/**', 'server-mods/guildtags/**', 'server-mods/indigovip/**', 'server-mods/indigospawn/**', 'server-mods/legendlimit-patch/**', 'server-mods/indigoguard/**', 'server-mods/indigoprecos/**', 'server-mods/indigocoins/**', 'server-mods/indigoranked/**', '.github/workflows/indigolog.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -46,6 +46,11 @@ jobs:
         run: |
           gradle build --no-daemon 2>&1 | tee build.log
           grep -iE "cannot find|not find|unable to locate" build.log && exit 1 || true
+      - name: Compilar IndigoRanked
+        working-directory: server-mods/indigoranked
+        run: |
+          gradle build --no-daemon 2>&1 | tee build.log
+          grep -iE "cannot find|not find|unable to locate" build.log && exit 1 || true
       - name: Compilar legendlimit 1.2.1 (limites por captura + barril sem drop)
         working-directory: server-mods/legendlimit-patch
         run: |
@@ -78,7 +83,7 @@ jobs:
       - name: Publicar os .jar no repositório (server-mods/dist)
         run: |
           mkdir -p server-mods/dist
-          cp server-mods/indigolog/build/libs/indigolog-*.jar server-mods/guildtags/build/libs/guildtags-*.jar server-mods/indigovip/build/libs/indigovip-*.jar server-mods/indigospawn/build/libs/indigospawn-*.jar server-mods/indigoguard/build/libs/indigoguard-*.jar server-mods/indigoprecos/build/libs/indigoprecos-*.jar server-mods/indigocoins/build/libs/indigocoins-*.jar server-mods/legendlimit-patch/legendlimit-1.2.1.jar server-mods/dist/
+          cp server-mods/indigolog/build/libs/indigolog-*.jar server-mods/guildtags/build/libs/guildtags-*.jar server-mods/indigovip/build/libs/indigovip-*.jar server-mods/indigospawn/build/libs/indigospawn-*.jar server-mods/indigoguard/build/libs/indigoguard-*.jar server-mods/indigoprecos/build/libs/indigoprecos-*.jar server-mods/indigocoins/build/libs/indigocoins-*.jar server-mods/indigoranked/build/libs/indigoranked-*.jar server-mods/legendlimit-patch/legendlimit-1.2.1.jar server-mods/dist/
           rm -f server-mods/dist/*-sources.jar
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
