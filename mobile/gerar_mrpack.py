@@ -13,7 +13,7 @@ O pack de celular é o mesmo do PC, com estas diferenças para rodar em mais apa
   - som 3D (Sound Physics) desligado;
   - servidor IndigoVerse já na lista de servidores.
 
-Uso:  python gerar_mrpack.py [--endereco shrimp-cosmos.tun.ply.gg] [--versao 1.0.0]
+Uso:  python gerar_mrpack.py [--endereco ultra-08.bedhosting.com.br:25553] [--versao 1.0.0]
 Saída: IndigoVerse-Mobile-<versao>.mrpack
 """
 import argparse
@@ -119,7 +119,7 @@ def servers_dat(nome, ip):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--endereco', default='shrimp-cosmos.tun.ply.gg')
+    ap.add_argument('--endereco', default='ultra-08.bedhosting.com.br:25553')
     ap.add_argument('--versao', default='1.0.3')
     a = ap.parse_args()
 
