@@ -9,6 +9,3 @@ indigoverse:simpletms:2.3.3@jar
 mods/!DoctorsDOUBLE-BATTLE-EVERYTHING.zip
 # Removido do modpack (Planejamento Estrutural: mineração por Pokémon) (2026-11-07)
 indigoverse:cobblemon-environment-interactions:3.1.0@jar
-# TESTE do bug da câmera na montaria (2026-11-07) - voltar se não resolver
-indigoverse:betterthirdperson:1.9.0@jar
-indigoverse:badoptimizations:2.4.1@jar
