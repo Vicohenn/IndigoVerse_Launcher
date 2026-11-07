@@ -1,0 +1,29 @@
+name: Baixar mod do Modrinth (para o servidor)
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'slug do projeto no Modrinth'
+        required: true
+permissions:
+  contents: write
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar a versão mais nova para Fabric 1.21.1
+        run: |
+          set -e
+          mkdir -p server-mods/terceiros
+          url=$(curl -sf "https://api.modrinth.com/v2/project/${{ inputs.slug }}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" | jq -r '.[0].files[] | select(.primary) | .url' | head -1)
+          [ -z "$url" ] && url=$(curl -sf "https://api.modrinth.com/v2/project/${{ inputs.slug }}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" | jq -r '.[0].files[0].url')
+          echo "$url"
+          curl -sfL -o "server-mods/terceiros/$(basename "$url" | sed 's/%2B/+/g')" "$url"
+          ls -la server-mods/terceiros
+      - name: Guardar no repositório
+        run: |
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          git add server-mods/terceiros
+          git commit -m "Mod de terceiros baixado: ${{ inputs.slug }}" || true
+          git push
