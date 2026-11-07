@@ -103,7 +103,12 @@ public final class IndigoCoinsMod implements ModInitializer {
                     return true;
                 });
             }
-            if (ticks % 20 == 0) { Amuleto.tick(server); LuckyEgg.tick(server); }
+            if (ticks % 20 == 0) {
+                Amuleto.tick(server);
+                LuckyEgg.tick(server);
+                for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList())
+                    if (autenticado(p)) Achados.converter(server, p);
+            }
             if (++ticks % 1200 == 0) {
                 Raspadinha.garantirRodada(server);   // confere as 24 h a cada minuto
                 Amuleto.salvarSeMudou();
