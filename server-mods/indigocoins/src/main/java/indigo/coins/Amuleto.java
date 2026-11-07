@@ -117,20 +117,45 @@ public final class Amuleto {
         return TypedActionResult.success(st);
     }
 
-    /** A cada segundo: desconta o tempo de quem está online e avisa quando acaba. */
+    /** Contador na tela (barra de chefe no topo): não precisa de mod no cliente. */
+    private static final Map<java.util.UUID, net.minecraft.entity.boss.ServerBossBar> barras = new java.util.HashMap<>();
+
+    private static void atualizarBarra(ServerPlayerEntity p, long resta) {
+        if (!Dados.config.amuletoContadorNaTela) { removerBarra(p.getUuid()); return; }
+        net.minecraft.entity.boss.ServerBossBar b = barras.computeIfAbsent(p.getUuid(), k -> {
+            net.minecraft.entity.boss.ServerBossBar nb = new net.minecraft.entity.boss.ServerBossBar(Text.empty(),
+                    net.minecraft.entity.boss.BossBar.Color.YELLOW, net.minecraft.entity.boss.BossBar.Style.NOTCHED_6);
+            return nb;
+        });
+        long seg = Math.max(0, resta) / 1000;
+        String txt = String.format("%d:%02d:%02d", seg / 3600, (seg / 60) % 60, seg % 60);
+        b.setName(Text.literal("§6✦ Amulet Coin §f" + txt + " §7(dinheiro de batalha x" + Math.max(1, Dados.config.amuletoMultiplicador) + ")"));
+        b.setPercent(Math.max(0f, Math.min(1f, resta / 3_600_000f)));
+        b.setColor(resta <= 300_000 ? net.minecraft.entity.boss.BossBar.Color.RED : net.minecraft.entity.boss.BossBar.Color.YELLOW);
+        if (!b.getPlayers().contains(p)) b.addPlayer(p);
+    }
+
+    static void removerBarra(java.util.UUID u) {
+        net.minecraft.entity.boss.ServerBossBar b = barras.remove(u);
+        if (b != null) b.clearPlayers();
+    }
+
+    /** A cada segundo: desconta o tempo de quem está online, atualiza o contador e avisa quando acaba. */
     static void tick(MinecraftServer server) {
-        if (ativos.isEmpty()) return;
+        if (ativos.isEmpty() && barras.isEmpty()) return;
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             String u = p.getUuidAsString();
             Long resta = ativos.get(u);
-            if (resta == null) continue;
+            if (resta == null) { removerBarra(p.getUuid()); continue; }
             long novo = resta - 1000;
             if (novo <= 0) {
                 ativos.remove(u);
+                removerBarra(p.getUuid());
                 p.sendMessage(Text.literal("§7Sua Amulet Coin acabou. O dinheiro de batalhas voltou ao normal."));
             } else {
                 if (resta > 300_000 && novo <= 300_000) p.sendMessage(Text.literal("§eSua Amulet Coin acaba em 5 minutos."));
                 ativos.put(u, novo);
+                atualizarBarra(p, novo);
             }
             sujo = true;
         }

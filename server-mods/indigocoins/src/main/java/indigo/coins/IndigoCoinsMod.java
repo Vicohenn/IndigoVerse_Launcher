@@ -76,6 +76,7 @@ public final class IndigoCoinsMod implements ModInitializer {
             return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> Amuleto.salvar());
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> Amuleto.removerBarra(h.player.getUuid()));
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Raspadinha.garantirRodada(server);
             Raspadinha.relatorio();

@@ -57,6 +57,8 @@ public final class Config {
     public int amuletoMultiplicador = 2;
     /** Quantas horas dá para acumular usando vários amuletos. */
     public int amuletoMaxHorasAcumuladas = 5;
+    /** Mostra o tempo restante numa barra no topo da tela. */
+    public boolean amuletoContadorNaTela = true;
 
     // ---------- relatório (testes) ----------
     /** Planilha (CSV, abre no Excel) com cada rodada. Caminho relativo à pasta do servidor. */
