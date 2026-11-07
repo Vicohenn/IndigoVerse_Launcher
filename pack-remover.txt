@@ -11,3 +11,6 @@ indigoverse:cobblemon-environment-interactions:3.1.0@jar
 
 # Removido do servidor e do launcher (fornalhas só pela loja do NPC) (2026-11-07)
 indigoverse:ironfurnaces:1.21.1-1.0.0@jar
+
+# Removido: Cobblemon Utility+ (itens de IV, shiny, nível 100 etc.) (2026-11-07)
+indigoverse:cobblemon_utility:1.8.0@jar
