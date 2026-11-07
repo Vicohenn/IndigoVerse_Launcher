@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "indigodados",
+  "version": "${version}",
+  "name": "IndigoDados",
+  "description": "Envia dados do servidor (sessões, tempo de jogo, saldos, Indigo Coins, raspadinha, ranqueada) para um banco TiDB/MySQL em segundo plano, para análises.",
+  "authors": ["IndigoVerse"],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": { "main": ["indigo.dados.IndigoDadosMod"] },
+  "depends": { "fabricloader": ">=0.16.0", "minecraft": "~1.21.1", "java": ">=21", "fabric-api": "*" }
+}
