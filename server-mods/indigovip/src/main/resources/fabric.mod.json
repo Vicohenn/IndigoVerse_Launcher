@@ -22,6 +22,7 @@
   },
   "mixins": [
     "indigovip.mixins.json",
-    "indigovip.gts.mixins.json"
+    "indigovip.gts.mixins.json",
+    "indigovip.trainerpass.mixins.json"
   ]
 }

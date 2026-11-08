@@ -26,4 +26,4 @@ java {
 }
 
 // classes do GTS existem só para compilar os mixins; o GTS de verdade vem no servidor
-jar { exclude 'org/pokesplash/**' }
+jar { exclude 'org/pokesplash/**', 'com/fredrickvonburger/**' }

@@ -1,0 +1,8 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "indigo.vip.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["PasseRecompensaMixin"],
+  "injectors": { "defaultRequire": 0 }
+}
