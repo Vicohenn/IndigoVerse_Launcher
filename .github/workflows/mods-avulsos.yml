@@ -1,0 +1,42 @@
+name: Mods avulsos (extra-mods/avulsos)
+on:
+  workflow_dispatch:
+  push:
+    paths: ['extra-mods/avulsos/**', '.github/workflows/mods-avulsos.yml']
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Colocar os .jar de extra-mods/avulsos no modpack
+        run: |
+          set -e
+          gh release download pack --repo "$REPO" -p distribution.json -O dist.json
+          python3 - <<'PY'
+          import json, hashlib, os, glob, zipfile, re
+          d = json.load(open('dist.json', encoding='utf-8'))
+          base = 'https://github.com/' + os.environ['REPO'] + '/releases/download/pack/'
+          os.makedirs('up', exist_ok=True)
+          srv = d['servers'][0]
+          limpo = lambda s: re.sub(r'[:@/\\\s]', '_', s)
+          for j in sorted(glob.glob('extra-mods/avulsos/*.jar')):
+              mj = json.loads(zipfile.ZipFile(j).read('fabric.mod.json').decode('utf-8', 'replace'))
+              b = open(j, 'rb').read()
+              nome = 'mod_' + re.sub(r'[^A-Za-z0-9._-]', '_', os.path.basename(j))
+              open('up/' + nome, 'wb').write(b)
+              mid = limpo(mj['id'])
+              srv['modules'] = [m for m in srv['modules'] if f':{mid}:' not in m['id']]
+              srv['modules'].append({'id': f"indigoverse:{mid}:{limpo(mj['version'])}@jar", 'name': mj.get('name', mj['id']),
+                                     'type': 'FabricMod', 'artifact': {'size': len(b), 'MD5': hashlib.md5(b).hexdigest(), 'url': base + nome}})
+              print('adicionado:', mj['id'], mj['version'], nome)
+          v = srv['version'].split('+')
+          srv['version'] = v[0] + '+' + '.'.join(sorted(set((v[1].split('.') if len(v) > 1 else []) + ['avul'])))
+          json.dump(d, open('up/distribution.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+          print(len(srv['modules']), 'módulos', srv['version'])
+          PY
+          gh release upload pack up/* --repo "$REPO" --clobber
