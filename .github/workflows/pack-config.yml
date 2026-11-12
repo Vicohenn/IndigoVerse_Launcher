@@ -2,7 +2,7 @@ name: Configs extras do pack (minimapa etc.)
 on:
   workflow_dispatch:
   push:
-    paths: ['pack-config/**', 'pack-remover.txt', 'pack-adicionar.json', 'pack-endereco.txt', '.github/workflows/pack-config.yml']
+    paths: ['pack-config/**', 'pack-remover.txt', 'pack-adicionar.json', 'pack-opcional.txt', 'pack-endereco.txt', '.github/workflows/pack-config.yml']
 permissions:
   contents: write
 jobs:
@@ -48,6 +48,16 @@ jobs:
                   if m['id'] not in remover and not any(x['id'] == m['id'] for x in srv['modules']):
                       srv['modules'].append(m)
                       print('devolvido ao download:', m['id'])
+          # módulos opcionais (pack-opcional.txt): vêm marcados, mas cada jogador pode desligar em Configurações > Mods
+          if os.path.exists('pack-opcional.txt'):
+              opc = {l.strip() for l in open('pack-opcional.txt', encoding='utf-8') if l.strip() and not l.startswith('#')}
+              def marcar(mods):
+                  for m in mods:
+                      if m['id'] in opc:
+                          m['required'] = {'value': False, 'def': True}
+                          print('opcional:', m['id'])
+                      marcar(m.get('subModules', []))
+              marcar(srv['modules'])
           # endereço do servidor (playit.gg etc.)
           if os.path.exists('pack-endereco.txt'):
               end = open('pack-endereco.txt', encoding='utf-8').read().strip()

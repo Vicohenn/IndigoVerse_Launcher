@@ -1,0 +1,5 @@
+# Mods opcionais no launcher: vêm ligados, mas dá para desligar em Configurações > Mods.
+# Só têm lógica de servidor, então desligar não impede de entrar no IndigoVerse
+# (lá o servidor continua aplicando as regras). Usado para o mundo singleplayer do dono. (2026-11-12)
+indigoverse:guild:1.1.0@jar
+indigoverse:legendlimit:1.1.0@jar
