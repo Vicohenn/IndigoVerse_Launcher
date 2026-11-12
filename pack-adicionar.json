@@ -1,4 +1,26 @@
 [
-  {"id": "indigoverse:obc:1.5.0-fabric@jar", "name": "Only Bottle Caps", "type": "FabricMod",
-   "artifact": {"size": 250957, "MD5": "350d0f0fd55f4c9e7912197bf1cd8b92", "url": "https://github.com/Vicohenn/IndigoVerse_Launcher/releases/download/pack/mod_Only_Bottle_Caps-1.5.0-fabric.jar"}}
+ {
+  "id": "indigoverse:obc:1.5.0-fabric@jar",
+  "name": "Only Bottle Caps",
+  "type": "FabricMod",
+  "artifact": {
+   "size": 250957,
+   "MD5": "350d0f0fd55f4c9e7912197bf1cd8b92",
+   "url": "https://github.com/Vicohenn/IndigoVerse_Launcher/releases/download/pack/mod_Only_Bottle_Caps-1.5.0-fabric.jar"
+  }
+ },
+ {
+  "id": "indigoverse:cobblemon-environment-interactions:3.1.0@jar",
+  "name": "Cobblemon Environment Interactions (só singleplayer - ligue em Configurações > Mods)",
+  "type": "FabricMod",
+  "required": {
+   "value": false,
+   "def": false
+  },
+  "artifact": {
+   "size": 251491,
+   "MD5": "f31174aad15c8bc81624a4d4aa62acaa",
+   "url": "https://github.com/Vicohenn/IndigoVerse_Launcher/releases/download/pack/mod_cobblemon-environment-interactions-fabric-3.1.0-cobblemon184.jar"
+  }
+ }
 ]
